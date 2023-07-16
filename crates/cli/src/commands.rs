@@ -15,6 +15,6 @@ pub enum Commands {
     },
     #[command(about = "Unpack a server package")]
     Unpack {
-        path: Option<String>
+        path: String
     }
 }
