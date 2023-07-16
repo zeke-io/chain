@@ -196,6 +196,7 @@ dependencies = [
  "clap",
  "common",
  "serde",
+ "toml",
  "zip",
 ]
 

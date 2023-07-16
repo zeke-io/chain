@@ -17,4 +17,5 @@ anyhow = "1.0.71"
 clap = { version = "4.3.4", features = ["derive"] }
 common = { path = "../common" }
 serde = { version = "1.0", features = ["derive"] }
+toml = "0.7.6"
 zip = "0.6.6"
