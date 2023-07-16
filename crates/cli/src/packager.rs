@@ -1,37 +1,16 @@
 use common::{from_folder, ServerMetadata};
-use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 use std::process::exit;
+use std::{fs, io};
 use zip::write::FileOptions;
-use zip::ZipWriter;
+use zip::{ZipArchive, ZipWriter};
 
 pub struct EntryFile {
     pub path: String,
     pub contents: Vec<u8>,
     pub checksum: String,
-}
-
-pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
-    let path = match path {
-        Some(path) => path,
-        None => "./".to_string(),
-    };
-
-    let metadata = from_folder(path.as_str()).expect("Cannot load metadata file");
-
-    let files = load_files(path.as_str())?;
-    create_package(metadata.clone(), files)?;
-
-    println!("Package created as \"{}\"", format!("{}.mscpack", metadata.server.name));
-
-    Ok(())
-}
-
-pub fn unpack_server(path: String) -> anyhow::Result<()> {
-    println!("{}", path);
-    Ok(())
 }
 
 fn load_files(path: &str) -> anyhow::Result<Vec<EntryFile>> {
@@ -84,5 +63,61 @@ fn create_package(metadata: ServerMetadata, files: Vec<EntryFile>) -> anyhow::Re
     }
 
     zip.finish()?;
+    Ok(())
+}
+
+pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
+    let path = match path {
+        Some(path) => path,
+        None => "./".to_string(),
+    };
+
+    let metadata = from_folder(path.as_str()).expect("Cannot load metadata file");
+
+    let files = load_files(path.as_str())?;
+    create_package(metadata.clone(), files)?;
+
+    println!(
+        "Package created as \"{}\"",
+        format!("{}.mscpack", metadata.server.name)
+    );
+    Ok(())
+}
+
+fn extract_files(archive: &mut ZipArchive<File>) -> anyhow::Result<()> {
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let output_path = match file.enclosed_name() {
+            Some(path) => path.to_owned(),
+            None => continue,
+        };
+
+        println!(
+            "Extracting file \"{}\" ({} bytes)",
+            output_path.display(),
+            file.size()
+        );
+
+        if let Some(p) = output_path.parent() {
+            if !p.exists() {
+                fs::create_dir_all(p)?;
+            }
+        }
+
+        let mut outfile = File::create(&output_path)?;
+        io::copy(&mut file, &mut outfile)?;
+    }
+
+    Ok(())
+}
+
+pub fn unpack_server(path: String, _force_all: bool) -> anyhow::Result<()> {
+    let file = File::open(&path)?;
+    let mut archive = ZipArchive::new(file)?;
+    println!("Unpacking \"{}\"...", path);
+
+    extract_files(&mut archive)?;
+
+    println!("Done!");
     Ok(())
 }

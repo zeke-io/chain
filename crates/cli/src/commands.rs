@@ -12,5 +12,9 @@ pub enum Commands {
     #[command(about = "Pack a server and its files")]
     Pack { path: Option<String> },
     #[command(about = "Unpack a server package")]
-    Unpack { path: String },
+    Unpack {
+        #[arg(short, long)]
+        force_all: bool,
+        package_path: String,
+    },
 }

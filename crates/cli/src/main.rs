@@ -10,6 +10,9 @@ fn main() -> anyhow::Result<()> {
 
     match cli.command {
         Commands::Pack { path } => packager::pack_server(path),
-        Commands::Unpack { path } => packager::unpack_server(path),
+        Commands::Unpack {
+            package_path,
+            force_all,
+        } => packager::unpack_server(package_path, force_all),
     }
 }
