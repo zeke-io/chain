@@ -219,10 +219,11 @@ fn verify_checksum(
     manifest_file: Option<&ManifestFile>,
     existing_file: &Path,
 ) -> anyhow::Result<bool> {
-    let new_checksum = md5::compute(buffer);
+    let file_bytes = fs::read(existing_file)?;
+    let checksum = md5::compute(file_bytes);
 
     if let Some(manifest) = manifest_file {
-        return Ok(manifest.checksum == format!("{:x}", new_checksum));
+        return Ok(manifest.checksum == format!("{:x}", checksum));
     } else {
         println!(
             "{}Warning! The file was not found in the manifest",
@@ -230,8 +231,6 @@ fn verify_checksum(
         )
     }
 
-    let file_bytes = fs::read(existing_file)?;
-    let checksum = md5::compute(file_bytes);
-
+    let new_checksum = md5::compute(buffer);
     Ok(checksum.eq(&new_checksum))
 }
