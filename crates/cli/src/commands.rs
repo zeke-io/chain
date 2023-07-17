@@ -10,11 +10,11 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     #[command(about = "Pack a server and its files")]
-    Pack {
-        path: Option<String>
-    },
+    Pack { path: Option<String> },
     #[command(about = "Unpack a server package")]
     Unpack {
-        path: Option<String>
-    }
+        #[arg(short, long)]
+        force_all: bool,
+        package_path: String,
+    },
 }
