@@ -1,9 +1,9 @@
 use common::{from_folder, ServerMetadata};
+use std::fs;
 use std::fs::File;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::path::Path;
 use std::process::exit;
-use std::{fs, io};
 use zip::write::FileOptions;
 use zip::{ZipArchive, ZipWriter};
 
@@ -84,43 +84,73 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
     Ok(())
 }
 
-fn extract_files(archive: &mut ZipArchive<File>) -> anyhow::Result<()> {
+fn extract_files(archive: &mut ZipArchive<File>, force_all: bool) -> anyhow::Result<()> {
     for i in 0..archive.len() {
-        let mut file = archive.by_index(i)?;
-        let output_path = match file.enclosed_name() {
+        let mut zip_file = archive.by_index(i)?;
+        let output_path = match zip_file.enclosed_name() {
             Some(path) => path.to_owned(),
             None => continue,
         };
 
-        if (*file.name()).ends_with('/') {
+        if (*zip_file.name()).ends_with('/') {
             fs::create_dir_all(&output_path)?;
+            continue;
+        }
+
+        // Buffer
+        let mut buffer = Vec::new();
+        zip_file.read_to_end(&mut buffer)?;
+
+        // Check if file exists
+        let existing_file = Path::new(&output_path);
+        if existing_file.exists() {
+            if !force_all && verify_checksum(&buffer, existing_file)? {
+                println!("Skipping file \"{}\"", output_path.display());
+                continue;
+            }
+
+            println!(
+                "Overriding file \"{}\" ({} bytes)",
+                output_path.display(),
+                zip_file.size()
+            );
         } else {
             println!(
                 "Extracting file \"{}\" ({} bytes)",
                 output_path.display(),
-                file.size()
+                zip_file.size()
             );
-
-            if let Some(p) = output_path.parent() {
-                if !p.exists() {
-                    fs::create_dir_all(p)?;
-                }
-            }
-
-            let mut outfile = File::create(&output_path)?;
-            io::copy(&mut file, &mut outfile)?;
         }
+
+        // Create parent folders
+        if let Some(p) = output_path.parent() {
+            if !p.exists() {
+                fs::create_dir_all(p)?;
+            }
+        }
+
+        // Write file
+        let mut out_file = File::create(&output_path)?;
+        out_file.write_all(&buffer)?;
     }
 
     Ok(())
 }
 
-pub fn unpack_server(path: String, _force_all: bool) -> anyhow::Result<()> {
+fn verify_checksum(buffer: &Vec<u8>, existing_file: &Path) -> anyhow::Result<bool> {
+    let file_bytes = fs::read(existing_file)?;
+    let checksum = md5::compute(file_bytes);
+    let new_checksum = md5::compute(buffer);
+
+    Ok(checksum.eq(&new_checksum))
+}
+
+pub fn unpack_server(path: String, force_all: bool) -> anyhow::Result<()> {
     let file = File::open(&path)?;
     let mut archive = ZipArchive::new(file)?;
     println!("Unpacking \"{}\"...", path);
 
-    extract_files(&mut archive)?;
+    extract_files(&mut archive, force_all)?;
 
     println!("Done!");
     Ok(())
