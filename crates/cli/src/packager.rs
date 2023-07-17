@@ -92,20 +92,24 @@ fn extract_files(archive: &mut ZipArchive<File>) -> anyhow::Result<()> {
             None => continue,
         };
 
-        println!(
-            "Extracting file \"{}\" ({} bytes)",
-            output_path.display(),
-            file.size()
-        );
+        if (*file.name()).ends_with('/') {
+            fs::create_dir_all(&output_path)?;
+        } else {
+            println!(
+                "Extracting file \"{}\" ({} bytes)",
+                output_path.display(),
+                file.size()
+            );
 
-        if let Some(p) = output_path.parent() {
-            if !p.exists() {
-                fs::create_dir_all(p)?;
+            if let Some(p) = output_path.parent() {
+                if !p.exists() {
+                    fs::create_dir_all(p)?;
+                }
             }
-        }
 
-        let mut outfile = File::create(&output_path)?;
-        io::copy(&mut file, &mut outfile)?;
+            let mut outfile = File::create(&output_path)?;
+            io::copy(&mut file, &mut outfile)?;
+        }
     }
 
     Ok(())
