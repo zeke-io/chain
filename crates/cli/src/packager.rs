@@ -5,6 +5,7 @@ use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::exit;
+use termion::{color, style};
 use zip::write::FileOptions;
 use zip::{ZipArchive, ZipWriter};
 
@@ -33,11 +34,18 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
 
     let metadata = from_folder(path.as_str()).expect("Cannot load metadata file");
 
+    println!(
+        "{}Preparing package...{}",
+        color::Fg(color::Green),
+        style::Reset
+    );
     let files = load_files(path.as_str())?;
     create_package(metadata.clone(), files)?;
 
     println!(
-        "Package created as \"{}\"",
+        "{}{}Package created as \"{}\".",
+        color::Fg(color::Green),
+        style::Bold,
         format!("{}.mscpack", metadata.server.name)
     );
     Ok(())
@@ -46,11 +54,11 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
 pub fn unpack_server(path: String, force_all: bool) -> anyhow::Result<()> {
     let file = File::open(&path)?;
     let mut archive = ZipArchive::new(file)?;
-    println!("Unpacking \"{}\"...", path);
+    println!("{}Unpacking \"{}\"...", color::Fg(color::Green), path);
 
     extract_files(&mut archive, force_all)?;
 
-    println!("Done!");
+    println!("{}{}Done!", color::Fg(color::Green), style::Bold);
     Ok(())
 }
 
@@ -94,13 +102,26 @@ fn create_package(metadata: ServerMetadata, files: Vec<EntryFile>) -> anyhow::Re
     let options = FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     let mut manifest_files = Vec::new();
 
-    for file in files {
-        println!("[{}] {}", file.checksum, file.path);
+    for (i, file) in files.iter().enumerate() {
+        println!(
+            "{}{}{} {}/{} {} Processing file {}\"{}\" {}[{}]",
+            color::Bg(color::Yellow),
+            color::Fg(color::Black),
+            style::Bold,
+            i + 1,
+            files.len(),
+            style::Reset,
+            color::Fg(color::Cyan),
+            file.path,
+            color::Fg(color::LightBlack),
+            file.checksum,
+        );
+
         zip.start_file(&file.path, options)?;
         zip.write_all(&*file.contents)?;
         manifest_files.push(ManifestFile {
-            path: file.path,
-            checksum: file.checksum,
+            path: file.path.clone(),
+            checksum: file.checksum.clone(),
         });
     }
 
@@ -151,6 +172,7 @@ fn extract_files(archive: &mut ZipArchive<File>, force_all: bool) -> anyhow::Res
 
         // Check if file exists
         let existing_file = Path::new(&output_path);
+        let mut overriding: bool = false;
         if existing_file.exists() {
             let manifest_file: Option<&ManifestFile> = manifest
                 .file
@@ -158,22 +180,24 @@ fn extract_files(archive: &mut ZipArchive<File>, force_all: bool) -> anyhow::Res
                 .find(|f| PathBuf::from(&f.path).eq(&output_path));
 
             if !force_all && verify_checksum(&buffer, manifest_file, existing_file)? {
-                println!("Skipping file \"{}\"", output_path.display());
+                // println!("Skipping file \"{}\"", output_path.display());
                 continue;
             }
 
-            println!(
-                "Overriding file \"{}\" ({} bytes)",
-                output_path.display(),
-                zip_file.size()
-            );
-        } else {
-            println!(
-                "Extracting file \"{}\" ({} bytes)",
-                output_path.display(),
-                zip_file.size()
-            );
+            overriding = true;
         }
+
+        println!(
+            "{} file \"{}\" {}({} bytes)",
+            if overriding {
+                format!("{}Overriding", color::Fg(color::Yellow))
+            } else {
+                format!("{}Extracting", color::Fg(color::Cyan))
+            },
+            output_path.display(),
+            style::Reset,
+            zip_file.size()
+        );
 
         // Create parent folders
         if let Some(p) = output_path.parent() {
@@ -200,7 +224,10 @@ fn verify_checksum(
     if let Some(manifest) = manifest_file {
         return Ok(manifest.checksum == format!("{:x}", new_checksum));
     } else {
-        println!("Warning! The file was not found in the manifest")
+        println!(
+            "{}Warning! The file was not found in the manifest",
+            color::Fg(color::Yellow)
+        )
     }
 
     let file_bytes = fs::read(existing_file)?;
