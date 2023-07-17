@@ -43,10 +43,11 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
     create_package(metadata.clone(), files)?;
 
     println!(
-        "{}{}Package created as \"{}\".",
+        "{}{}Package created as \"{}\".{}",
         color::Fg(color::Green),
         style::Bold,
-        format!("{}.mscpack", metadata.server.name)
+        format!("{}.mscpack", metadata.server.name),
+        style::Reset,
     );
     Ok(())
 }
@@ -54,11 +55,21 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
 pub fn unpack_server(path: String, force_all: bool) -> anyhow::Result<()> {
     let file = File::open(&path)?;
     let mut archive = ZipArchive::new(file)?;
-    println!("{}Unpacking \"{}\"...", color::Fg(color::Green), path);
+    println!(
+        "{}Unpacking \"{}\"...{}",
+        color::Fg(color::Green),
+        path,
+        style::Reset,
+    );
 
     extract_files(&mut archive, force_all)?;
 
-    println!("{}{}Done!", color::Fg(color::Green), style::Bold);
+    println!(
+        "{}{}Done!{}",
+        color::Fg(color::Green),
+        style::Bold,
+        style::Reset
+    );
     Ok(())
 }
 
@@ -104,7 +115,7 @@ fn create_package(metadata: ServerMetadata, files: Vec<EntryFile>) -> anyhow::Re
 
     for (i, file) in files.iter().enumerate() {
         println!(
-            "{}{}{} {}/{} {} Processing file {}\"{}\" {}[{}]",
+            "{}{}{} {}/{} {} Processing file {}\"{}\" {}[{}]{}",
             color::Bg(color::Yellow),
             color::Fg(color::Black),
             style::Bold,
@@ -115,6 +126,7 @@ fn create_package(metadata: ServerMetadata, files: Vec<EntryFile>) -> anyhow::Re
             file.path,
             color::Fg(color::LightBlack),
             file.checksum,
+            style::Reset,
         );
 
         zip.start_file(&file.path, options)?;
@@ -226,8 +238,9 @@ fn verify_checksum(
         return Ok(manifest.checksum == format!("{:x}", checksum));
     } else {
         println!(
-            "{}Warning! The file was not found in the manifest",
-            color::Fg(color::Yellow)
+            "{}Warning! The file was not found in the manifest{}",
+            color::Fg(color::Yellow),
+            style::Reset,
         )
     }
 
