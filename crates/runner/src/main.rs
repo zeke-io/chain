@@ -1,8 +1,10 @@
 use common::{from_path, ServerMetadata};
-use std::process::{exit, Child, Command, Stdio};
+use std::process::{Child, Command, Stdio};
+use anyhow::Context;
 
 fn main() -> anyhow::Result<()> {
-    let metadata = from_path("./mcs.toml").expect("Cannot load metadata file");
+    let metadata = from_path("./mcs.toml")
+        .context("Cannot load metadata file")?;
 
     run_server(metadata).wait()?;
 
