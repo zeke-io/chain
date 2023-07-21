@@ -46,6 +46,9 @@ fn process_overrides(directory: &Path) -> anyhow::Result<()> {
                 let file_target_path = directory.join(file);
                 let file_source_path = std::env::current_dir()?.join(file_source);
 
+                fs::create_dir_all(file_target_path.parent().unwrap())
+                    .with_context(|| format!("Could not create file \"{}\".", file_target_path.display()))?;
+
                 fs::copy(&file_source_path, &file_target_path).with_context(|| {
                     format!(
                         "Could not copy file \"{}\" to \"{}\".",
