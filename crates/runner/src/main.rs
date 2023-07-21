@@ -1,12 +1,12 @@
 use anyhow::Context;
-use common::mcs;
-use common::mcs::ServerMetadata;
+use common::metadata;
+use common::metadata::ServerMetadata;
 use std::fs;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
 
 fn main() -> anyhow::Result<()> {
-    let metadata = mcs::from_path("./mcs.yml").context("Cannot load metadata file")?;
+    let metadata = metadata::from_path("./mcs.yml").context("Cannot load metadata file")?;
 
     run_server(metadata)?.wait()?;
 
