@@ -1,11 +1,21 @@
 use anyhow::Context;
+use clap::Parser;
 use common::metadata::ServerMetadata;
 use common::{metadata, overrides};
 use std::fs;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};
 
+#[derive(Parser, Debug)]
+#[command(name = "msr")]
+struct Args {
+    #[arg(short, long)]
+    prod: bool,
+}
+
 fn main() -> anyhow::Result<()> {
+    let args = Args::parse();
+
     let metadata = metadata::from_path("./mcs.yml").context("Cannot load metadata file")?;
 
     let directory = match metadata.server.directory.clone() {
@@ -23,14 +33,14 @@ fn main() -> anyhow::Result<()> {
         })?;
     }
 
-    process_overrides(directory)?;
+    process_overrides(directory, args.prod)?;
     run_server(metadata, directory)?.wait()?;
 
     Ok(())
 }
 
-fn process_overrides(directory: &Path) -> anyhow::Result<()> {
-    let is_dev = true;
+fn process_overrides(directory: &Path, prod_enabled: bool) -> anyhow::Result<()> {
+    let is_dev = !prod_enabled;
     let override_data = overrides::from_folder("./");
 
     if let Some(data) = override_data {
@@ -46,8 +56,9 @@ fn process_overrides(directory: &Path) -> anyhow::Result<()> {
                 let file_target_path = directory.join(file);
                 let file_source_path = std::env::current_dir()?.join(file_source);
 
-                fs::create_dir_all(file_target_path.parent().unwrap())
-                    .with_context(|| format!("Could not create file \"{}\".", file_target_path.display()))?;
+                fs::create_dir_all(file_target_path.parent().unwrap()).with_context(|| {
+                    format!("Could not create file \"{}\".", file_target_path.display())
+                })?;
 
                 fs::copy(&file_source_path, &file_target_path).with_context(|| {
                     format!(
