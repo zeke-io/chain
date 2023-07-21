@@ -5,6 +5,7 @@ use std::path::Path;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ServerData {
     pub name: String,
+    pub directory: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

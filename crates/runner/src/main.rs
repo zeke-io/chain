@@ -11,12 +11,16 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn run_server(metadata: ServerMetadata) -> anyhow::Result<Child> {
-    let java_command = match &metadata.runtime.java_path {
+    let java_command = match metadata.runtime.java_path {
         Some(java) => java,
-        None => "java",
+        None => "java".into(),
+    };
+    let directory = match metadata.server.directory {
+        Some(directory) => directory,
+        None => "./".into(),
     };
     let mut command = Command::new(java_command);
-    command.current_dir("./");
+    command.current_dir(directory);
 
     if let Some(args) = metadata.runtime.jvm_options {
         for arg in args {
@@ -25,7 +29,9 @@ fn run_server(metadata: ServerMetadata) -> anyhow::Result<Child> {
     }
 
     command.arg("-jar");
-    command.arg(metadata.runtime.server_jar);
+    let jar_path = std::env::current_dir()?.join(metadata.runtime.server_jar);
+
+    command.arg(jar_path);
 
     if let Some(args) = metadata.runtime.server_args {
         for arg in args {
