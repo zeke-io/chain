@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
+use anyhow::Context;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ServerData {
@@ -26,7 +27,8 @@ pub fn from_path(path: &str) -> Option<ServerMetadata> {
     let contents = fs::read_to_string(path);
 
     if let Ok(contents) = contents {
-        let metadata: ServerMetadata = toml::from_str(&contents).unwrap();
+        let metadata: ServerMetadata = serde_yaml::from_str(&contents)
+            .context("Failed to parse \"mcs.toml\" file")?;
         return Option::from(metadata);
     }
 
@@ -38,7 +40,8 @@ pub fn from_folder(path: &str) -> Option<ServerMetadata> {
     let contents = fs::read_to_string(file_path);
 
     if let Ok(contents) = contents {
-        let metadata: ServerMetadata = toml::from_str(&contents).unwrap();
+        let metadata: ServerMetadata = serde_yaml::from_str(&contents)
+            .context("Failed to parse \"mcs.toml\" file")?;
         return Option::from(metadata);
     }
 
