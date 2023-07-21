@@ -1,4 +1,4 @@
-use common::{from_folder, ServerMetadata};
+use common::mcs::{from_folder, ServerMetadata};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
