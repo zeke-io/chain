@@ -1,7 +1,7 @@
+use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
-use anyhow::Context;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ServerData {
@@ -28,7 +28,8 @@ pub fn from_path(path: &str) -> Option<ServerMetadata> {
 
     if let Ok(contents) = contents {
         let metadata: ServerMetadata = serde_yaml::from_str(&contents)
-            .context("Failed to parse \"mcs.yml\" file").ok()?;
+            .context("Failed to parse \"mcs.yml\" file")
+            .ok()?;
         return Option::from(metadata);
     }
 
@@ -41,7 +42,8 @@ pub fn from_folder(path: &str) -> Option<ServerMetadata> {
 
     if let Ok(contents) = contents {
         let metadata: ServerMetadata = serde_yaml::from_str(&contents)
-            .context("Failed to parse \"mcs.yml\" file").ok()?;
+            .context("Failed to parse \"mcs.yml\" file")
+            .ok()?;
         return Option::from(metadata);
     }
 
