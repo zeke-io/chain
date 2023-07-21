@@ -1,9 +1,9 @@
-use std::fs;
-use std::path::Path;
 use anyhow::Context;
-use std::process::{Child, Command, Stdio};
 use common::mcs;
 use common::mcs::ServerMetadata;
+use std::fs;
+use std::path::Path;
+use std::process::{Child, Command, Stdio};
 
 fn main() -> anyhow::Result<()> {
     let metadata = mcs::from_path("./mcs.toml").context("Cannot load metadata file")?;
@@ -25,8 +25,12 @@ fn run_server(metadata: ServerMetadata) -> anyhow::Result<Child> {
     let directory = Path::new(&directory);
 
     if !directory.exists() || !directory.is_dir() {
-        fs::create_dir_all(directory)
-            .with_context(|| format!("Could not create server directory \"{}\"", directory.display()))?;
+        fs::create_dir_all(directory).with_context(|| {
+            format!(
+                "Could not create server directory \"{}\"",
+                directory.display()
+            )
+        })?;
     }
 
     let mut command = Command::new(java_command);
