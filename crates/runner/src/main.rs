@@ -6,7 +6,7 @@ use std::path::Path;
 use std::process::{Child, Command, Stdio};
 
 fn main() -> anyhow::Result<()> {
-    let metadata = mcs::from_path("./mcs.toml").context("Cannot load metadata file")?;
+    let metadata = mcs::from_path("./mcs.yml").context("Cannot load metadata file")?;
 
     run_server(metadata)?.wait()?;
 

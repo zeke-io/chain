@@ -28,7 +28,7 @@ pub fn from_path(path: &str) -> Option<ServerMetadata> {
 
     if let Ok(contents) = contents {
         let metadata: ServerMetadata = serde_yaml::from_str(&contents)
-            .context("Failed to parse \"mcs.toml\" file")?;
+            .context("Failed to parse \"mcs.yml\" file").ok()?;
         return Option::from(metadata);
     }
 
@@ -36,12 +36,12 @@ pub fn from_path(path: &str) -> Option<ServerMetadata> {
 }
 
 pub fn from_folder(path: &str) -> Option<ServerMetadata> {
-    let file_path = Path::new(path).join("mcs.toml");
+    let file_path = Path::new(path).join("mcs.yml");
     let contents = fs::read_to_string(file_path);
 
     if let Ok(contents) = contents {
         let metadata: ServerMetadata = serde_yaml::from_str(&contents)
-            .context("Failed to parse \"mcs.toml\" file")?;
+            .context("Failed to parse \"mcs.yml\" file").ok()?;
         return Option::from(metadata);
     }
 
