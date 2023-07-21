@@ -1,4 +1,4 @@
-use serde::{Deserialize,Serialize};
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::Path;
 
@@ -9,10 +9,10 @@ pub struct ServerData {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RuntimeData {
-    pub java_path: String,
     pub server_jar: String,
-    pub jvm_options: Vec<String>,
-    pub server_args: Vec<String>,
+    pub java_path: Option<String>,
+    pub jvm_options: Option<Vec<String>>,
+    pub server_args: Option<Vec<String>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

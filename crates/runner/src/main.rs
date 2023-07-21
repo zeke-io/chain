@@ -1,29 +1,36 @@
+use anyhow::Context;
 use common::{from_path, ServerMetadata};
 use std::process::{Child, Command, Stdio};
-use anyhow::Context;
 
 fn main() -> anyhow::Result<()> {
-    let metadata = from_path("./mcs.toml")
-        .context("Cannot load metadata file")?;
+    let metadata = from_path("./mcs.toml").context("Cannot load metadata file")?;
 
-    run_server(metadata).wait()?;
+    run_server(metadata)?.wait()?;
 
     Ok(())
 }
 
-fn run_server(metadata: ServerMetadata) -> Child {
-    let mut command = Command::new(&metadata.runtime.java_path);
+fn run_server(metadata: ServerMetadata) -> anyhow::Result<Child> {
+    let java_command = match &metadata.runtime.java_path {
+        Some(java) => java,
+        None => "java",
+    };
+    let mut command = Command::new(java_command);
     command.current_dir("./");
 
-    for arg in metadata.runtime.jvm_options {
-        command.arg(arg);
+    if let Some(args) = metadata.runtime.jvm_options {
+        for arg in args {
+            command.arg(arg);
+        }
     }
 
     command.arg("-jar");
     command.arg(metadata.runtime.server_jar);
 
-    for arg in metadata.runtime.server_args {
-        command.arg(arg);
+    if let Some(args) = metadata.runtime.server_args {
+        for arg in args {
+            command.arg(arg);
+        }
     }
 
     command
@@ -31,5 +38,5 @@ fn run_server(metadata: ServerMetadata) -> Child {
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
         .spawn()
-        .unwrap()
+        .context("Cannot initialize server jar")
 }
