@@ -1,3 +1,5 @@
+use std::fs;
+use std::path::Path;
 use anyhow::Context;
 use common::{from_path, ServerMetadata};
 use std::process::{Child, Command, Stdio};
@@ -19,6 +21,13 @@ fn run_server(metadata: ServerMetadata) -> anyhow::Result<Child> {
         Some(directory) => directory,
         None => "./".into(),
     };
+    let directory = Path::new(&directory);
+
+    if !directory.exists() || !directory.is_dir() {
+        fs::create_dir_all(directory)
+            .with_context(|| format!("Could not create server directory \"{}\"", directory.display()))?;
+    }
+
     let mut command = Command::new(java_command);
     command.current_dir(directory);
 
