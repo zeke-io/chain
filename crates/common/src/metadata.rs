@@ -18,9 +18,17 @@ pub struct RuntimeData {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PluginEntry {
+    pub name: String,
+    pub download_url: Option<String>,
+    pub path: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ServerMetadata {
     pub server: ServerData,
     pub runtime: RuntimeData,
+    pub plugins: Option<Vec<PluginEntry>>
 }
 
 pub fn from_path(path: &str) -> Option<ServerMetadata> {
