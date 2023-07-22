@@ -20,7 +20,7 @@ fn main() -> anyhow::Result<()> {
 
     let directory = match metadata.server.directory.clone() {
         Some(directory) => directory,
-        None => "./".into(),
+        None => "./server".into(),
     };
     let directory = Path::new(&directory);
 
