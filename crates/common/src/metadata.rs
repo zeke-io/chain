@@ -28,7 +28,7 @@ pub struct PluginEntry {
 pub struct ServerMetadata {
     pub server: ServerData,
     pub runtime: RuntimeData,
-    pub plugins: Option<Vec<PluginEntry>>
+    pub plugins: Option<Vec<PluginEntry>>,
 }
 
 pub fn from_path(path: &str) -> Option<ServerMetadata> {
