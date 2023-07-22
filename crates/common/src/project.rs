@@ -4,26 +4,30 @@ use anyhow::Context;
 use std::fs;
 use std::path::PathBuf;
 
-pub async fn install(force: bool) -> anyhow::Result<()> {
-    let metadata = metadata::from_path("./").context("Cannot load metadata file")?;
+pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()> {
+    let metadata = metadata::from_path(&root_directory).context("Cannot load metadata file")?;
+
+    #[allow(unused_variables)]
     let server_directory = match metadata.server.server_directory {
         Some(path) => PathBuf::from(path),
-        None => std::env::current_dir()?,
+        None => root_directory.join("server"),
     };
 
+    let data_folder = root_directory.join(".msc");
+
     if let Some(plugins) = metadata.plugins {
-        install_plugins(plugins, server_directory, force).await?;
+        install_plugins(&data_folder, plugins, force).await?;
     }
 
     Ok(())
 }
 
 async fn install_plugins(
+    directory: &PathBuf,
     plugins: Vec<PluginEntry>,
-    server_directory: PathBuf,
     force: bool,
 ) -> anyhow::Result<()> {
-    let directory = server_directory.join("plugins");
+    let directory = directory.join("plugins");
     fs::create_dir_all(&directory)?;
 
     for plugin in plugins {

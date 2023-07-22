@@ -3,6 +3,8 @@ use clap::{Parser, Subcommand};
 #[derive(Parser)]
 #[command(name = "msc")]
 pub struct Cli {
+    pub path: Option<String>,
+
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -15,11 +17,10 @@ pub enum Commands {
         force: bool,
     },
     #[command(about = "Pack a server and its files")]
-    Pack { path: Option<String> },
+    Pack,
     #[command(about = "Unpack a server package")]
     Unpack {
         #[arg(short, long)]
-        force_all: bool,
-        package_path: String,
+        force: bool
     },
 }

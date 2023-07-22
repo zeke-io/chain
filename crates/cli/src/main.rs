@@ -1,3 +1,4 @@
+use std::path::PathBuf;
 use clap::Parser;
 use common::project;
 
@@ -10,12 +11,16 @@ mod packager;
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
+    let directory = match cli.path {
+        Some(path) => PathBuf::from(path),
+        None => std::env::current_dir()?
+    };
+
     match cli.command {
-        Commands::Install { force } => project::install(force).await,
-        Commands::Pack { path } => packager::pack_server(path),
-        Commands::Unpack {
-            package_path,
-            force_all,
-        } => packager::unpack_server(package_path, force_all),
+        Commands::Install { force } => project::install(directory, force).await,
+        _ => {
+            println!("This command is not implemented yet!");
+            Ok(())
+        }
     }
 }
