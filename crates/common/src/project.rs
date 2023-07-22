@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 pub async fn install(force: bool) -> anyhow::Result<()> {
     let metadata = metadata::from_folder("./").context("Cannot load metadata file")?;
-    let server_directory = match metadata.server.directory {
+    let server_directory = match metadata.server.server_directory {
         Some(path) => PathBuf::from(path),
         None => std::env::current_dir()?,
     };

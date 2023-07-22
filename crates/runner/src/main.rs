@@ -18,7 +18,7 @@ fn main() -> anyhow::Result<()> {
 
     let metadata = metadata::from_path("./mcs.yml").context("Cannot load metadata file")?;
 
-    let directory = match metadata.server.directory.clone() {
+    let directory = match metadata.server.server_directory.clone() {
         Some(directory) => directory,
         None => "./server".into(),
     };
