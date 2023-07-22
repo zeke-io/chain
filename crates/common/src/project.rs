@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use crate::metadata;
 use crate::metadata::PluginEntry;
 
-pub fn install() -> anyhow::Result<()> {
+pub async fn install() -> anyhow::Result<()> {
     let metadata = metadata::from_folder("./").context("Cannot load metadata file")?;
     let server_directory = match metadata.server.directory {
         Some(path) => PathBuf::from(path),
@@ -14,13 +14,13 @@ pub fn install() -> anyhow::Result<()> {
     };
 
     if let Some(plugins) = metadata.plugins {
-        install_plugins(plugins, server_directory)?;
+        install_plugins(plugins, server_directory).await?;
     }
 
     Ok(())
 }
 
-fn install_plugins(plugins: Vec<PluginEntry>, server_directory: PathBuf) -> anyhow::Result<()> {
+async fn install_plugins(plugins: Vec<PluginEntry>, server_directory: PathBuf) -> anyhow::Result<()> {
     let directory = server_directory.join("plugins");
     fs::create_dir_all(&directory)?;
 
@@ -41,7 +41,7 @@ fn install_plugins(plugins: Vec<PluginEntry>, server_directory: PathBuf) -> anyh
                 &plugin.name, &download_url
             );
 
-            download_file(download_url, plugin_path)?;
+            download_file(download_url, plugin_path).await?;
 
             continue;
         }
@@ -69,15 +69,15 @@ fn install_plugins(plugins: Vec<PluginEntry>, server_directory: PathBuf) -> anyh
     Ok(())
 }
 
-fn download_file(url: String, path: PathBuf) -> anyhow::Result<()> {
-    let response = reqwest::blocking::get(&url)?;
+async fn download_file(url: String, path: PathBuf) -> anyhow::Result<()> {
+    let response = reqwest::get(&url).await?;
 
     if !response.status().is_success() {
         return Err(anyhow!("Could not download plugin from \"{}\".", url));
     }
 
     let mut file = File::create(path)?;
-    let content = response.bytes()?;
+    let content = response.bytes().await?;
 
     file.write_all(&content)?;
     Ok(())
