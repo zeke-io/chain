@@ -2,7 +2,7 @@ use crate::metadata::PluginEntry;
 use crate::{metadata, utils};
 use anyhow::Context;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()> {
     let metadata = metadata::from_path(&root_directory).context("Cannot load metadata file")?;
@@ -15,8 +15,31 @@ pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()>
 
     let data_folder = root_directory.join(".msc");
 
+    install_server_jar(&data_folder, metadata.runtime.server_jar).await?;
+
     if let Some(plugins) = metadata.plugins {
         install_plugins(&data_folder, plugins, force).await?;
+    }
+
+    Ok(())
+}
+
+async fn install_server_jar(directory: &PathBuf, server_source_path: String) -> anyhow::Result<()> {
+    let directory = directory.join("versions");
+    fs::create_dir_all(&directory)?;
+
+    if utils::is_url(&server_source_path) {
+        println!(
+            "Downloading server JAR file \"{}\"...",
+            server_source_path
+        );
+
+        utils::download_file(server_source_path, directory.join("server.jar")).await?;
+    } else {
+        println!("Installing server JAR from \"{}\"...", server_source_path);
+        let source_path = PathBuf::from(server_source_path);
+
+        fs::copy(source_path, directory.join("server.jar")).context("Could not copy server JAR file")?;
     }
 
     Ok(())
