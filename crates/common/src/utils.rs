@@ -1,3 +1,6 @@
+use anyhow::anyhow;
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use url::Url;
 
@@ -30,4 +33,18 @@ pub fn append_or_check_file<P: AsRef<Path>>(path: P, file_name: &str) -> Option<
     }
 
     Some(path_buf)
+}
+
+pub async fn download_file(url: String, path: PathBuf) -> anyhow::Result<()> {
+    let response = reqwest::get(&url).await?;
+
+    if !response.status().is_success() {
+        return Err(anyhow!("Could not download plugin from \"{}\".", url));
+    }
+
+    let mut file = File::create(path)?;
+    let content = response.bytes().await?;
+
+    file.write_all(&content)?;
+    Ok(())
 }

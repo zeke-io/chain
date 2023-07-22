@@ -1,9 +1,7 @@
-use crate::metadata;
 use crate::metadata::PluginEntry;
-use anyhow::{anyhow, Context};
+use crate::{metadata, utils};
+use anyhow::Context;
 use std::fs;
-use std::fs::File;
-use std::io::Write;
 use std::path::PathBuf;
 
 pub async fn install(force: bool) -> anyhow::Result<()> {
@@ -45,7 +43,7 @@ async fn install_plugins(
                 &plugin.name, &download_url
             );
 
-            download_file(download_url, plugin_path).await?;
+            utils::download_file(download_url, plugin_path).await?;
 
             continue;
         }
@@ -76,19 +74,5 @@ async fn install_plugins(
         println!("Warning! No download url or local path has been provided for plugin \"{}\", skipping...", &plugin.name);
     }
 
-    Ok(())
-}
-
-async fn download_file(url: String, path: PathBuf) -> anyhow::Result<()> {
-    let response = reqwest::get(&url).await?;
-
-    if !response.status().is_success() {
-        return Err(anyhow!("Could not download plugin from \"{}\".", url));
-    }
-
-    let mut file = File::create(path)?;
-    let content = response.bytes().await?;
-
-    file.write_all(&content)?;
     Ok(())
 }
