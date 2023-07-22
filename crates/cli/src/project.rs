@@ -46,8 +46,17 @@ fn install_plugins(plugins: Vec<PluginEntry>, server_directory: PathBuf) -> anyh
 
         if let Some(path) = plugin.path {
             println!("Installing \"{}\" from \"{}\"...", &plugin.name, &path);
+            let path = PathBuf::from(path);
 
-            todo!();
+            if !path.exists() {
+                println!("The path \"{}\" does not exists, skipping plugin...", path.display());
+                continue;
+            } else if !path.is_file() {
+                println!("The path \"{}\" is not a file, skipping plugin...", path.display());
+                continue;
+            }
+
+            fs::copy(path, plugin_path).context("Could not copy plugin")?;
 
             continue;
         }
