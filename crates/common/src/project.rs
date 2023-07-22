@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Context};
-use common::metadata;
-use common::metadata::PluginEntry;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use crate::metadata;
+use crate::metadata::PluginEntry;
 
 pub fn install() -> anyhow::Result<()> {
     let metadata = metadata::from_folder("./").context("Cannot load metadata file")?;

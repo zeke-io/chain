@@ -272,6 +272,7 @@ name = "common"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "reqwest",
  "serde",
  "serde_yaml",
 ]
@@ -796,7 +797,6 @@ dependencies = [
  "common",
  "ignore",
  "md5",
- "reqwest",
  "serde",
  "termion",
  "toml",

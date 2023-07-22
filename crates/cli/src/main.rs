@@ -1,10 +1,10 @@
 use clap::Parser;
+use common::project;
 
 use crate::commands::{Cli, Commands};
 
 mod commands;
 mod packager;
-mod project;
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
