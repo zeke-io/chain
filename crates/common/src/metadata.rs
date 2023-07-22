@@ -1,3 +1,4 @@
+use crate::utils;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -31,22 +32,11 @@ pub struct ServerMetadata {
     pub plugins: Option<Vec<PluginEntry>>,
 }
 
-pub fn from_path(path: &str) -> Option<ServerMetadata> {
-    let contents = fs::read_to_string(path);
-
-    if let Ok(contents) = contents {
-        let metadata: ServerMetadata = serde_yaml::from_str(&contents)
-            .context("Failed to parse \"mcs.yml\" file")
-            .ok()?;
-        return Option::from(metadata);
-    }
-
-    None
-}
-
-pub fn from_folder(path: &str) -> Option<ServerMetadata> {
-    let file_path = Path::new(path).join("mcs.yml");
-    let contents = fs::read_to_string(file_path);
+pub fn from_path<P: AsRef<Path>>(path: P) -> Option<ServerMetadata> {
+    let metadata_file = utils::append_or_check_file(path, "mcs.yml")
+        .context("Could not find \"mcs.yml\" file")
+        .ok()?;
+    let contents = fs::read_to_string(metadata_file);
 
     if let Ok(contents) = contents {
         let metadata: ServerMetadata = serde_yaml::from_str(&contents)
