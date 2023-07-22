@@ -9,6 +9,8 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    #[command(about = "Installs the files and plugins")]
+    Install,
     #[command(about = "Pack a server and its files")]
     Pack { path: Option<String> },
     #[command(about = "Unpack a server package")]

@@ -9,6 +9,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
+        Commands::Install => Ok(()),
         Commands::Pack { path } => packager::pack_server(path),
         Commands::Unpack {
             package_path,
