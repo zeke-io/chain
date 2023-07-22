@@ -31,15 +31,20 @@ async fn install_server_jar(directory: &PathBuf, server_source_path: String) -> 
     if utils::is_url(&server_source_path) {
         println!(
             "Downloading server JAR file \"{}\"...",
-            server_source_path
+            utils::get_filename_from_downloadable_file(&server_source_path)
         );
 
-        utils::download_file(server_source_path, directory.join("server.jar")).await?;
+        utils::download_file(server_source_path, directory).await?;
     } else {
         println!("Installing server JAR from \"{}\"...", server_source_path);
         let source_path = PathBuf::from(server_source_path);
+        let file_name = Path::new(&source_path)
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap_or("server.jar");
+        let dest_path = Path::new(&directory).join(file_name);
 
-        fs::copy(source_path, directory.join("server.jar")).context("Could not copy server JAR file")?;
+        fs::copy(source_path, dest_path).context("Could not copy server JAR file")?;
     }
 
     Ok(())
