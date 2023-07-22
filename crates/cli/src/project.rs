@@ -1,7 +1,9 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use common::metadata;
 use common::metadata::PluginEntry;
 use std::fs;
+use std::fs::File;
+use std::io::Write;
 use std::path::PathBuf;
 
 pub fn install() -> anyhow::Result<()> {
@@ -39,7 +41,7 @@ fn install_plugins(plugins: Vec<PluginEntry>, server_directory: PathBuf) -> anyh
                 &plugin.name, &download_url
             );
 
-            todo!();
+            download_file(download_url, plugin_path)?;
 
             continue;
         }
@@ -64,5 +66,19 @@ fn install_plugins(plugins: Vec<PluginEntry>, server_directory: PathBuf) -> anyh
         println!("Warning! No download url or local path has been provided for plugin \"{}\", skipping...", &plugin.name);
     }
 
+    Ok(())
+}
+
+fn download_file(url: String, path: PathBuf) -> anyhow::Result<()> {
+    let response = reqwest::blocking::get(&url)?;
+
+    if !response.status().is_success() {
+        return Err(anyhow!("Could not download plugin from \"{}\".", url));
+    }
+
+    let mut file = File::create(path)?;
+    let content = response.bytes()?;
+
+    file.write_all(&content)?;
     Ok(())
 }
