@@ -63,7 +63,7 @@ pub fn get_filename_from_downloadable_file(url: &str) -> String {
             file_name.to_owned()
         } else {
             "downloaded_file.msc".to_owned()
-        }
+        };
     }
 
     get_filename_from_url(url)

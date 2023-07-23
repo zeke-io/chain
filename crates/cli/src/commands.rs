@@ -21,6 +21,6 @@ pub enum Commands {
     #[command(about = "Unpack a server package")]
     Unpack {
         #[arg(short, long)]
-        force: bool
+        force: bool,
     },
 }

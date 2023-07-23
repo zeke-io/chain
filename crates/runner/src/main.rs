@@ -1,7 +1,7 @@
 use anyhow::Context;
 use clap::Parser;
-use common::metadata::ServerMetadata;
-use common::{metadata, overrides};
+use core::metadata::ServerMetadata;
+use core::{metadata, overrides};
 use std::fs;
 use std::path::Path;
 use std::process::{Child, Command, Stdio};

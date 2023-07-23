@@ -1,6 +1,6 @@
-use std::path::PathBuf;
 use clap::Parser;
-use common::project;
+use core::project;
+use std::path::PathBuf;
 
 use crate::commands::{Cli, Commands};
 
@@ -13,7 +13,7 @@ async fn main() -> anyhow::Result<()> {
 
     let directory = match cli.path {
         Some(path) => PathBuf::from(path),
-        None => std::env::current_dir()?
+        None => std::env::current_dir()?,
     };
 
     match cli.command {

@@ -1,4 +1,5 @@
-use common::metadata::ServerMetadata;
+use core::metadata;
+use core::metadata::ServerMetadata;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
@@ -8,7 +9,6 @@ use std::process::exit;
 use termion::{color, style};
 use zip::write::FileOptions;
 use zip::{ZipArchive, ZipWriter};
-use common::metadata;
 
 struct EntryFile {
     pub path: String,
