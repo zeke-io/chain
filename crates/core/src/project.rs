@@ -7,6 +7,25 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct VersionData {
+    pub jar_file: String,
+    pub source: String,
+}
+
+impl VersionData {
+    pub fn get_path(project_data: &ProjectData) -> anyhow::Result<PathBuf> {
+        let data_directory = project_data.data_directory.clone();
+        let contents = fs::read_to_string(data_directory.join("version.yml"))
+            .context("Could not find version info")?;
+
+        let version_data: VersionData =
+            serde_yaml::from_str(&contents).context("Could not parse version info")?;
+
+        Ok(data_directory.join("versions").join(version_data.jar_file))
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProjectSettings {
     pub java_runtime: String,
     #[serde(default)]
@@ -40,10 +59,14 @@ impl ProjectData {
     pub fn get_server_directory(&self) -> PathBuf {
         let server_directory = match &self.metadata.server.server_directory {
             Some(path) => PathBuf::from(path),
-            None => Path::new(&self.root_directory).join("servers"),
+            None => Path::new(&self.root_directory).join("server"),
         };
 
         server_directory
+    }
+
+    pub fn get_data_directory(&self) -> &Path {
+        Path::new(&self.data_directory)
     }
 
     pub fn get_plugins_directory(&self) -> PathBuf {
@@ -81,7 +104,12 @@ pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()>
     let project_data = ProjectData::load(&root_directory, true)?;
     let metadata = project_data.metadata.clone();
 
-    install_server_jar(&project_data.get_versions_directory(), metadata.server.jar).await?;
+    install_server_jar(
+        &project_data.get_versions_directory(),
+        project_data.get_data_directory(),
+        metadata.server.jar.clone(),
+    )
+    .await?;
 
     install_plugins(
         &project_data.get_plugins_directory(),
@@ -93,7 +121,12 @@ pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()>
     Ok(())
 }
 
-async fn install_server_jar(directory: &PathBuf, server_source_path: String) -> anyhow::Result<()> {
+async fn install_server_jar(
+    directory: &PathBuf,
+    data_directory: &Path,
+    server_source_path: String,
+) -> anyhow::Result<PathBuf> {
+    let path: PathBuf;
     fs::create_dir_all(&directory)?;
 
     if utils::is_url(&server_source_path) {
@@ -102,20 +135,33 @@ async fn install_server_jar(directory: &PathBuf, server_source_path: String) -> 
             utils::get_filename_from_downloadable_file(&server_source_path)
         );
 
-        utils::download_file(server_source_path, directory.clone()).await?;
+        path = utils::download_file(server_source_path.clone(), directory.clone()).await?;
     } else {
         println!("Installing server JAR from \"{}\"...", server_source_path);
-        let source_path = PathBuf::from(server_source_path);
+        let source_path = PathBuf::from(&server_source_path);
         let file_name = Path::new(&source_path)
             .file_name()
             .and_then(|name| name.to_str())
             .unwrap_or("server.jar");
         let dest_path = Path::new(&directory).join(file_name);
 
-        fs::copy(source_path, dest_path).context("Could not copy server JAR file")?;
+        fs::copy(source_path, &dest_path).context("Could not copy server JAR file")?;
+        path = dest_path;
     }
 
-    Ok(())
+    let version_data = VersionData {
+        source: server_source_path,
+        jar_file: path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap()
+            .into(),
+    };
+
+    let version_data_file = serde_yaml::to_string(&version_data)?;
+    std::fs::write(data_directory.join("version.yml"), version_data_file)?;
+
+    Ok(path)
 }
 
 async fn install_plugins(

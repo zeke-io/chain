@@ -35,7 +35,7 @@ pub fn append_or_check_file<P: AsRef<Path>>(path: P, file_name: &str) -> Option<
     Some(path_buf)
 }
 
-pub async fn download_file(url: String, mut path: PathBuf) -> anyhow::Result<()> {
+pub async fn download_file(url: String, mut path: PathBuf) -> anyhow::Result<PathBuf> {
     let response = reqwest::get(&url).await?;
 
     if !response.status().is_success() {
@@ -47,11 +47,11 @@ pub async fn download_file(url: String, mut path: PathBuf) -> anyhow::Result<()>
         path = path.join(filename);
     }
 
-    let mut file = File::create(path)?;
+    let mut file = File::create(&path)?;
     let content = response.bytes().await?;
 
     file.write_all(&content)?;
-    Ok(())
+    Ok(path)
 }
 
 pub fn get_filename_from_downloadable_file(url: &str) -> String {
