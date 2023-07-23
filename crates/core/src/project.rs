@@ -77,7 +77,7 @@ impl ProjectData {
         Path::new(&self.data_directory).join("versions")
     }
 
-    pub fn get_settings(self) -> ProjectSettings {
+    pub fn get_settings(&self) -> ProjectSettings {
         self.settings.clone()
     }
 }

@@ -1,4 +1,4 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use clap::Parser;
 use core::project::{ProjectSettings, VersionData};
 use core::{overrides, project};
@@ -32,7 +32,7 @@ fn main() -> anyhow::Result<()> {
     let server_jar = VersionData::get_path(&project_data)
         .context("Could not find the version file, make sure to run `msc install` first")?;
 
-    // process_overrides(server_directory, args.prod)?;
+    process_overrides(project_data.get_settings(), server_directory.as_path())?;
     run_server(
         server_directory.as_path(),
         server_jar,
@@ -43,36 +43,30 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn process_overrides(directory: &Path, prod_enabled: bool) -> anyhow::Result<()> {
-    let is_dev = !prod_enabled;
-    let override_data = overrides::from_folder("./");
+fn process_overrides(settings: ProjectSettings, server_directory: &Path) -> anyhow::Result<()> {
+    for file_target in settings.overrides.keys() {
+        let value = settings.overrides.get(file_target).unwrap();
+        let source_file = Path::new(value);
 
-    if let Some(data) = override_data {
-        for file in data.keys() {
-            let file_override = data.get(file);
-
-            if let Some(file_override) = file_override {
-                let file_source = if is_dev {
-                    &file_override.source.dev
-                } else {
-                    &file_override.source.prod
-                };
-                let file_target_path = directory.join(file);
-                let file_source_path = std::env::current_dir()?.join(file_source);
-
-                fs::create_dir_all(file_target_path.parent().unwrap()).with_context(|| {
-                    format!("Could not create file \"{}\".", file_target_path.display())
-                })?;
-
-                fs::copy(&file_source_path, &file_target_path).with_context(|| {
-                    format!(
-                        "Could not copy file \"{}\" to \"{}\".",
-                        file_source_path.display(),
-                        file_target_path.display()
-                    )
-                })?;
-            }
+        if !source_file.exists() {
+            return Err(anyhow!(
+                "Override file \"{}\" does not exists",
+                source_file.display()
+            ));
         }
+
+        let file_target = server_directory.join(file_target);
+
+        fs::create_dir_all(file_target.parent().unwrap())
+            .with_context(|| format!("Could not create file \"{}\".", file_target.display()))?;
+
+        fs::copy(&source_file, &file_target).with_context(|| {
+            format!(
+                "Could not copy file \"{}\" to \"{}\".",
+                source_file.display(),
+                file_target.display()
+            )
+        })?;
     }
 
     Ok(())
