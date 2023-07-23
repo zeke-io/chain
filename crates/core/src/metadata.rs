@@ -32,18 +32,14 @@ pub struct ServerMetadata {
     pub plugins: Option<Vec<PluginEntry>>,
 }
 
-pub fn from_path<P: AsRef<Path>>(path: P) -> Option<ServerMetadata> {
-    let metadata_file = utils::append_or_check_file(path, "mcs.yml")
-        .context("Could not find \"mcs.yml\" file")
-        .ok()?;
-    let contents = fs::read_to_string(metadata_file);
+pub fn from_path<P: AsRef<Path>>(path: P) -> anyhow::Result<ServerMetadata> {
+    let metadata_file =
+        utils::append_or_check_file(path, "mcs.yml").context("Could not find \"mcs.yml\" file")?;
 
-    if let Ok(contents) = contents {
-        let metadata: ServerMetadata = serde_yaml::from_str(&contents)
-            .context("Failed to parse \"mcs.yml\" file")
-            .ok()?;
-        return Option::from(metadata);
-    }
+    let contents = fs::read_to_string(metadata_file).context("Could not read \"mcs.yml\" file")?;
 
-    None
+    let metadata: ServerMetadata =
+        serde_yaml::from_str(&contents).context("Failed to parse \"mcs.yml\" file")?;
+
+    Ok(metadata)
 }
