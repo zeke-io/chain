@@ -1,7 +1,9 @@
 use anyhow::{anyhow, Context};
 use clap::Parser;
+use core::metadata::ServerMetadata;
+use core::project;
 use core::project::{ProjectSettings, VersionData};
-use core::{overrides, project};
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
@@ -32,6 +34,12 @@ fn main() -> anyhow::Result<()> {
     let server_jar = VersionData::get_path(&project_data)
         .context("Could not find the version file, make sure to run `msc install` first")?;
 
+    prepare_dependencies(
+        project_data.get_dependencies_directory(),
+        project_data.get_dependencies_manifest().unwrap(),
+        project_data.get_metadata(),
+        server_directory.join("plugins"),
+    )?;
     process_overrides(project_data.get_settings(), server_directory.as_path())?;
     run_server(
         server_directory.as_path(),
@@ -39,6 +47,58 @@ fn main() -> anyhow::Result<()> {
         project_data.get_settings(),
     )?
     .wait()?;
+
+    Ok(())
+}
+
+fn prepare_dependencies(
+    dependencies_folder: PathBuf,
+    dependencies: HashMap<String, String>,
+    metadata: ServerMetadata,
+    target_directory: PathBuf,
+) -> anyhow::Result<()> {
+    if metadata.dependencies.len() != dependencies.keys().len() {
+        return Err(anyhow!(
+            "Detected dependency changes, make sure to run `msc install` first"
+        ));
+    }
+
+    for dependency_entry in metadata.dependencies {
+        let source = dependencies
+            .get(&dependency_entry.name)
+            .expect("Detected dependency changes, make sure to run `msc install` first");
+
+        if let Some(path) = dependency_entry.path {
+            if &path != source {
+                return Err(anyhow!(
+                    "Detected dependency changes, make sure to run `msc install` first"
+                ));
+            }
+        }
+
+        if let Some(url) = dependency_entry.download_url {
+            if &url != source {
+                return Err(anyhow!(
+                    "Detected dependency changes, make sure to run `msc install` first"
+                ));
+            }
+        }
+    }
+
+    for dependency in dependencies.keys() {
+        println!("Preparing dependency \"{}\"...", dependency);
+        let dependency_file = Path::new(&dependencies_folder).join(dependency);
+
+        if !dependency_file.exists() {
+            return Err(anyhow!(
+                "Dependency file \"{}\" was not found, make sure to run `msc install` first",
+                dependency
+            ));
+        }
+
+        fs::create_dir_all(&target_directory)?;
+        fs::copy(&dependency_file, target_directory.join(dependency))?;
+    }
 
     Ok(())
 }

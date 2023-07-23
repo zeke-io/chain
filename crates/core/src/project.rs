@@ -1,6 +1,6 @@
 use crate::metadata::{DependencyEntry, ServerMetadata};
 use crate::{metadata, utils};
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
@@ -56,6 +56,17 @@ impl ProjectData {
         })
     }
 
+    pub fn get_metadata(&self) -> ServerMetadata {
+        self.metadata.clone()
+    }
+
+    pub fn get_dependencies_manifest(&self) -> anyhow::Result<HashMap<String, String>> {
+        let content = fs::read_to_string(&self.data_directory.join("dependencies.yml"))?;
+        let manifest: HashMap<String, String> = serde_yaml::from_str(&content)?;
+
+        Ok(manifest)
+    }
+
     pub fn get_server_directory(&self) -> PathBuf {
         let server_directory = match &self.metadata.server.server_directory {
             Some(path) => PathBuf::from(path),
@@ -69,8 +80,8 @@ impl ProjectData {
         Path::new(&self.data_directory)
     }
 
-    pub fn get_plugins_directory(&self) -> PathBuf {
-        Path::new(&self.data_directory).join("plugins")
+    pub fn get_dependencies_directory(&self) -> PathBuf {
+        Path::new(&self.data_directory).join("dependencies")
     }
 
     pub fn get_versions_directory(&self) -> PathBuf {
@@ -112,7 +123,8 @@ pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()>
     .await?;
 
     install_plugins(
-        &project_data.get_plugins_directory(),
+        &project_data.data_directory,
+        &project_data.get_dependencies_directory(),
         metadata.dependencies,
         force,
     )
@@ -159,24 +171,25 @@ async fn install_server_jar(
     };
 
     let version_data_file = serde_yaml::to_string(&version_data)?;
-    std::fs::write(data_directory.join("version.yml"), version_data_file)?;
+    fs::write(data_directory.join("version.yml"), version_data_file)?;
 
     Ok(path)
 }
 
 async fn install_plugins(
+    data_directory: &PathBuf,
     directory: &PathBuf,
     plugins: Vec<DependencyEntry>,
     force: bool,
 ) -> anyhow::Result<()> {
     fs::create_dir_all(&directory)?;
 
-    for plugin in plugins {
+    for plugin in plugins.clone() {
         let plugin_path = directory.clone().join(&plugin.name);
 
         if !force && plugin_path.exists() {
             if !plugin_path.is_file() {
-                println!("Warning! The path \"{}\" for the plugin {} is a directory, please delete it or change the name of the plugin.", plugin_path.display(), &plugin.name)
+                return Err(anyhow!("Warning! The path \"{}\" for the plugin {} is a directory, please delete it or change the name of the plugin.", plugin_path.display(), &plugin.name));
             }
 
             continue;
@@ -188,8 +201,7 @@ async fn install_plugins(
                 &plugin.name, &download_url
             );
 
-            utils::download_file(download_url, plugin_path).await?;
-
+            utils::download_file(download_url.clone(), plugin_path).await?;
             continue;
         }
 
@@ -211,13 +223,32 @@ async fn install_plugins(
                 continue;
             }
 
-            fs::copy(path, plugin_path).context("Could not copy plugin")?;
-
+            fs::copy(&path, plugin_path).context("Could not copy plugin")?;
             continue;
         }
 
         println!("Warning! No download url or local path has been provided for plugin \"{}\", skipping...", &plugin.name);
     }
+
+    let mut dependencies_manifest: HashMap<String, String> = HashMap::new();
+    for entry in plugins.clone() {
+        let source = if let Some(path) = entry.path {
+            path
+        } else if let Some(url) = entry.download_url {
+            url
+        } else {
+            return Err(anyhow!(
+                "Invalid plugin source for \"{}\", aborting...",
+                entry.name
+            ));
+        };
+
+        dependencies_manifest.insert(entry.name, source);
+    }
+    fs::write(
+        data_directory.join("dependencies.yml"),
+        serde_yaml::to_string(&dependencies_manifest).unwrap(),
+    )?;
 
     Ok(())
 }
