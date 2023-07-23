@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Context};
 use clap::Parser;
-use core::metadata::ServerMetadata;
-use core::project;
-use core::project::{ProjectSettings, VersionData};
+use chain_core::metadata::ServerMetadata;
+use chain_core::project;
+use chain_core::project::{ProjectSettings, VersionData};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};

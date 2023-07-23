@@ -1,5 +1,5 @@
-use core::metadata;
-use core::metadata::ServerMetadata;
+use chain_core::metadata;
+use chain_core::metadata::ServerMetadata;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;

@@ -1,5 +1,5 @@
 [package]
-name = "msc-runner"
+name = "chain-runner"
 version = "0.1.0"
 edition.workspace = true
 publish.workspace = true
@@ -9,12 +9,12 @@ maintainer = "Zeke <ezequiel_io@pm.me>"
 copyright = "2023 <ezequiel_io@pm.me>"
 
 [[bin]]
-name = "msr"
+name = "chainr"
 path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.71"
 clap = { version = "4.3.4", features = ["derive"] }
-core = { path = "../core" }
+chain-core = { path = "../core" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
