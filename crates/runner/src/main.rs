@@ -1,103 +1,94 @@
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use clap::Parser;
-use core::metadata::ServerMetadata;
-use core::{metadata, overrides};
+use core::project::{ProjectSettings, VersionData};
+use core::{overrides, project};
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 
 #[derive(Parser, Debug)]
 #[command(name = "msr")]
 struct Args {
     #[arg(short, long)]
-    prod: bool,
+    dev: bool,
 }
 
 fn main() -> anyhow::Result<()> {
     let args = Args::parse();
+    let directory = std::env::current_dir()?;
 
-    let metadata = metadata::from_path("./mcs.yml").context("Cannot load metadata file")?;
+    let project_data: project::ProjectData = project::ProjectData::load(&directory, args.dev)?;
+    let server_directory = project_data.get_server_directory();
 
-    let directory = match metadata.server.server_directory.clone() {
-        Some(directory) => directory,
-        None => "./server".into(),
-    };
-    let directory = Path::new(&directory);
-
-    if !directory.exists() || !directory.is_dir() {
-        fs::create_dir_all(directory).with_context(|| {
+    if !server_directory.exists() || !server_directory.is_dir() {
+        fs::create_dir_all(&server_directory).with_context(|| {
             format!(
                 "Could not create server directory \"{}\"",
-                directory.display()
+                server_directory.display()
             )
         })?;
     }
 
-    process_overrides(directory, args.prod)?;
-    run_server(metadata, directory)?.wait()?;
+    let server_jar = VersionData::get_path(&project_data)
+        .context("Could not find the version file, make sure to run `msc install` first")?;
+
+    process_overrides(project_data.get_settings(), server_directory.as_path())?;
+    run_server(
+        server_directory.as_path(),
+        server_jar,
+        project_data.get_settings(),
+    )?
+    .wait()?;
 
     Ok(())
 }
 
-fn process_overrides(directory: &Path, prod_enabled: bool) -> anyhow::Result<()> {
-    let is_dev = !prod_enabled;
-    let override_data = overrides::from_folder("./");
+fn process_overrides(settings: ProjectSettings, server_directory: &Path) -> anyhow::Result<()> {
+    for file_target in settings.overrides.keys() {
+        let value = settings.overrides.get(file_target).unwrap();
+        let source_file = Path::new(value);
 
-    if let Some(data) = override_data {
-        for file in data.keys() {
-            let file_override = data.get(file);
-
-            if let Some(file_override) = file_override {
-                let file_source = if is_dev {
-                    &file_override.source.dev
-                } else {
-                    &file_override.source.prod
-                };
-                let file_target_path = directory.join(file);
-                let file_source_path = std::env::current_dir()?.join(file_source);
-
-                fs::create_dir_all(file_target_path.parent().unwrap()).with_context(|| {
-                    format!("Could not create file \"{}\".", file_target_path.display())
-                })?;
-
-                fs::copy(&file_source_path, &file_target_path).with_context(|| {
-                    format!(
-                        "Could not copy file \"{}\" to \"{}\".",
-                        file_source_path.display(),
-                        file_target_path.display()
-                    )
-                })?;
-            }
+        if !source_file.exists() {
+            return Err(anyhow!(
+                "Override file \"{}\" does not exists",
+                source_file.display()
+            ));
         }
+
+        let file_target = server_directory.join(file_target);
+
+        fs::create_dir_all(file_target.parent().unwrap())
+            .with_context(|| format!("Could not create file \"{}\".", file_target.display()))?;
+
+        fs::copy(&source_file, &file_target).with_context(|| {
+            format!(
+                "Could not copy file \"{}\" to \"{}\".",
+                source_file.display(),
+                file_target.display()
+            )
+        })?;
     }
 
     Ok(())
 }
 
-fn run_server(metadata: ServerMetadata, directory: &Path) -> anyhow::Result<Child> {
-    let java_command = match metadata.runtime.java_path {
-        Some(java) => java,
-        None => "java".into(),
-    };
+fn run_server(
+    server_directory: &Path,
+    server_jar: PathBuf,
+    settings: ProjectSettings,
+) -> anyhow::Result<Child> {
+    let mut command = Command::new(settings.java_runtime);
+    command.current_dir(server_directory);
 
-    let mut command = Command::new(java_command);
-    command.current_dir(directory);
-
-    if let Some(args) = metadata.runtime.jvm_options {
-        for arg in args {
-            command.arg(arg);
-        }
+    for arg in settings.jvm_options {
+        command.arg(arg);
     }
 
     command.arg("-jar");
-    let jar_path = std::env::current_dir()?.join(metadata.runtime.server_jar);
+    command.arg(server_jar);
 
-    command.arg(jar_path);
-
-    if let Some(args) = metadata.runtime.server_args {
-        for arg in args {
-            command.arg(arg);
-        }
+    for arg in settings.server_args {
+        command.arg(arg);
     }
 
     command

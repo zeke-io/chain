@@ -1,31 +1,132 @@
-use crate::metadata::PluginEntry;
+use crate::metadata::{DependencyEntry, ServerMetadata};
 use crate::{metadata, utils};
 use anyhow::Context;
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()> {
-    let metadata = metadata::from_path(&root_directory).context("Cannot load metadata file")?;
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct VersionData {
+    pub jar_file: String,
+    pub source: String,
+}
 
-    #[allow(unused_variables)]
-    let server_directory = match metadata.server.server_directory {
-        Some(path) => PathBuf::from(path),
-        None => root_directory.join("server"),
-    };
+impl VersionData {
+    pub fn get_path(project_data: &ProjectData) -> anyhow::Result<PathBuf> {
+        let data_directory = project_data.data_directory.clone();
+        let contents = fs::read_to_string(data_directory.join("version.yml"))
+            .context("Could not find version info")?;
 
-    let data_folder = root_directory.join(".msc");
+        let version_data: VersionData =
+            serde_yaml::from_str(&contents).context("Could not parse version info")?;
 
-    install_server_jar(&data_folder, metadata.runtime.server_jar).await?;
-
-    if let Some(plugins) = metadata.plugins {
-        install_plugins(&data_folder, plugins, force).await?;
+        Ok(data_directory.join("versions").join(version_data.jar_file))
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ProjectSettings {
+    pub java_runtime: String,
+    #[serde(default)]
+    pub jvm_options: Vec<String>,
+    #[serde(default)]
+    pub server_args: Vec<String>,
+    #[serde(default)]
+    pub overrides: HashMap<String, String>,
+}
+
+pub struct ProjectData {
+    root_directory: PathBuf,
+    data_directory: PathBuf,
+    metadata: ServerMetadata,
+    settings: ProjectSettings,
+}
+
+impl ProjectData {
+    pub fn load<P: AsRef<Path>>(path: &P, is_dev: bool) -> anyhow::Result<Self> {
+        let metadata = metadata::from_path(path)?;
+        let settings = load_settings(path, is_dev)?;
+
+        Ok(Self {
+            root_directory: path.as_ref().to_path_buf(),
+            data_directory: Path::new(path.as_ref()).join(".msc"),
+            metadata,
+            settings,
+        })
+    }
+
+    pub fn get_server_directory(&self) -> PathBuf {
+        let server_directory = match &self.metadata.server.server_directory {
+            Some(path) => PathBuf::from(path),
+            None => Path::new(&self.root_directory).join("server"),
+        };
+
+        server_directory
+    }
+
+    pub fn get_data_directory(&self) -> &Path {
+        Path::new(&self.data_directory)
+    }
+
+    pub fn get_plugins_directory(&self) -> PathBuf {
+        Path::new(&self.data_directory).join("plugins")
+    }
+
+    pub fn get_versions_directory(&self) -> PathBuf {
+        Path::new(&self.data_directory).join("versions")
+    }
+
+    pub fn get_settings(&self) -> ProjectSettings {
+        self.settings.clone()
+    }
+}
+
+pub fn load_settings<P: AsRef<Path>>(path: P, is_dev: bool) -> anyhow::Result<ProjectSettings> {
+    let settings_file_name = if is_dev {
+        "settings.dev.yml"
+    } else {
+        "settings.yml"
+    };
+    let settings_file = utils::append_or_check_file(path, settings_file_name)
+        .context(format!("Could not find \"{}\" file", settings_file_name))?;
+
+    let contents = fs::read_to_string(settings_file)
+        .context(format!("Could not read \"{}\" file", settings_file_name))?;
+
+    let settings: ProjectSettings = serde_yaml::from_str(&contents)
+        .context(format!("Could not parse \"{}\" file", settings_file_name))?;
+
+    Ok(settings)
+}
+
+pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()> {
+    let project_data = ProjectData::load(&root_directory, true)?;
+    let metadata = project_data.metadata.clone();
+
+    install_server_jar(
+        &project_data.get_versions_directory(),
+        project_data.get_data_directory(),
+        metadata.server.jar.clone(),
+    )
+    .await?;
+
+    install_plugins(
+        &project_data.get_plugins_directory(),
+        metadata.dependencies,
+        force,
+    )
+    .await?;
 
     Ok(())
 }
 
-async fn install_server_jar(directory: &PathBuf, server_source_path: String) -> anyhow::Result<()> {
-    let directory = directory.join("versions");
+async fn install_server_jar(
+    directory: &PathBuf,
+    data_directory: &Path,
+    server_source_path: String,
+) -> anyhow::Result<PathBuf> {
+    let path: PathBuf;
     fs::create_dir_all(&directory)?;
 
     if utils::is_url(&server_source_path) {
@@ -34,28 +135,40 @@ async fn install_server_jar(directory: &PathBuf, server_source_path: String) -> 
             utils::get_filename_from_downloadable_file(&server_source_path)
         );
 
-        utils::download_file(server_source_path, directory).await?;
+        path = utils::download_file(server_source_path.clone(), directory.clone()).await?;
     } else {
         println!("Installing server JAR from \"{}\"...", server_source_path);
-        let source_path = PathBuf::from(server_source_path);
+        let source_path = PathBuf::from(&server_source_path);
         let file_name = Path::new(&source_path)
             .file_name()
             .and_then(|name| name.to_str())
             .unwrap_or("server.jar");
         let dest_path = Path::new(&directory).join(file_name);
 
-        fs::copy(source_path, dest_path).context("Could not copy server JAR file")?;
+        fs::copy(source_path, &dest_path).context("Could not copy server JAR file")?;
+        path = dest_path;
     }
 
-    Ok(())
+    let version_data = VersionData {
+        source: server_source_path,
+        jar_file: path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .unwrap()
+            .into(),
+    };
+
+    let version_data_file = serde_yaml::to_string(&version_data)?;
+    std::fs::write(data_directory.join("version.yml"), version_data_file)?;
+
+    Ok(path)
 }
 
 async fn install_plugins(
     directory: &PathBuf,
-    plugins: Vec<PluginEntry>,
+    plugins: Vec<DependencyEntry>,
     force: bool,
 ) -> anyhow::Result<()> {
-    let directory = directory.join("plugins");
     fs::create_dir_all(&directory)?;
 
     for plugin in plugins {
