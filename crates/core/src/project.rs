@@ -1,4 +1,4 @@
-use crate::metadata::{PluginEntry, ServerMetadata};
+use crate::metadata::{DependencyEntry, ServerMetadata};
 use crate::{metadata, utils};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -81,15 +81,14 @@ pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()>
     let project_data = ProjectData::load(&root_directory, true)?;
     let metadata = project_data.metadata.clone();
 
-    install_server_jar(
-        &project_data.get_versions_directory(),
-        metadata.runtime.server_jar,
+    install_server_jar(&project_data.get_versions_directory(), metadata.server.jar).await?;
+
+    install_plugins(
+        &project_data.get_plugins_directory(),
+        metadata.dependencies,
+        force,
     )
     .await?;
-
-    if let Some(plugins) = metadata.plugins {
-        install_plugins(&project_data.get_plugins_directory(), plugins, force).await?;
-    }
 
     Ok(())
 }
@@ -121,7 +120,7 @@ async fn install_server_jar(directory: &PathBuf, server_source_path: String) -> 
 
 async fn install_plugins(
     directory: &PathBuf,
-    plugins: Vec<PluginEntry>,
+    plugins: Vec<DependencyEntry>,
     force: bool,
 ) -> anyhow::Result<()> {
     fs::create_dir_all(&directory)?;
