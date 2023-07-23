@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 
 #[derive(Parser, Debug)]
-#[command(name = "msr")]
+#[command(name = "chainr")]
 struct Args {
     #[arg(short, long)]
     dev: bool,

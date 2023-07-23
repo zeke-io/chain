@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
-#[command(name = "msc")]
+#[command(name = "chain")]
 pub struct Cli {
     pub path: Option<String>,
 
