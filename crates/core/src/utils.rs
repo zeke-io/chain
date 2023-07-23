@@ -62,7 +62,7 @@ pub fn get_filename_from_downloadable_file(url: &str) -> String {
         return if let Some(file_name) = url_path.and_then(Iterator::last) {
             file_name.to_owned()
         } else {
-            "downloaded_file.msc".to_owned()
+            "file.chaindf".to_owned()
         };
     }
 

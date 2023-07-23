@@ -1,8 +1,8 @@
 use anyhow::{anyhow, Context};
-use clap::Parser;
 use chain_core::metadata::ServerMetadata;
 use chain_core::project;
 use chain_core::project::{ProjectSettings, VersionData};
+use clap::Parser;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -32,7 +32,7 @@ fn main() -> anyhow::Result<()> {
     }
 
     let server_jar = VersionData::get_path(&project_data)
-        .context("Could not find the version file, make sure to run `msc install` first")?;
+        .context("Could not find the version file, make sure to run `chain install` first")?;
 
     prepare_dependencies(
         project_data.get_dependencies_directory(),
@@ -59,19 +59,19 @@ fn prepare_dependencies(
 ) -> anyhow::Result<()> {
     if metadata.dependencies.len() != dependencies.keys().len() {
         return Err(anyhow!(
-            "Detected dependency changes, make sure to run `msc install` first"
+            "Detected dependency changes, make sure to run `chain install` first"
         ));
     }
 
     for dependency_entry in metadata.dependencies {
         let source = dependencies
             .get(&dependency_entry.name)
-            .expect("Detected dependency changes, make sure to run `msc install` first");
+            .expect("Detected dependency changes, make sure to run `chain install` first");
 
         if let Some(path) = dependency_entry.path {
             if &path != source {
                 return Err(anyhow!(
-                    "Detected dependency changes, make sure to run `msc install` first"
+                    "Detected dependency changes, make sure to run `chain install` first"
                 ));
             }
         }
@@ -79,7 +79,7 @@ fn prepare_dependencies(
         if let Some(url) = dependency_entry.download_url {
             if &url != source {
                 return Err(anyhow!(
-                    "Detected dependency changes, make sure to run `msc install` first"
+                    "Detected dependency changes, make sure to run `chain install` first"
                 ));
             }
         }
@@ -91,7 +91,7 @@ fn prepare_dependencies(
 
         if !dependency_file.exists() {
             return Err(anyhow!(
-                "Dependency file \"{}\" was not found, make sure to run `msc install` first",
+                "Dependency file \"{}\" was not found, make sure to run `chain install` first",
                 dependency
             ));
         }

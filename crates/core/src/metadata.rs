@@ -26,13 +26,14 @@ pub struct ServerMetadata {
 }
 
 pub fn from_path<P: AsRef<Path>>(path: P) -> anyhow::Result<ServerMetadata> {
-    let metadata_file =
-        utils::append_or_check_file(path, "mcs.yml").context("Could not find \"mcs.yml\" file")?;
+    let metadata_file = utils::append_or_check_file(path, "chain.yml")
+        .context("Could not find \"chain.yml\" file")?;
 
-    let contents = fs::read_to_string(metadata_file).context("Could not read \"mcs.yml\" file")?;
+    let contents =
+        fs::read_to_string(metadata_file).context("Could not read \"chain.yml\" file")?;
 
     let metadata: ServerMetadata =
-        serde_yaml::from_str(&contents).context("Failed to parse \"mcs.yml\" file")?;
+        serde_yaml::from_str(&contents).context("Failed to parse \"chain.yml\" file")?;
 
     Ok(metadata)
 }
