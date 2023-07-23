@@ -1,5 +1,5 @@
+use chain_core::project;
 use clap::Parser;
-use core::project;
 use std::path::PathBuf;
 
 use crate::commands::{Cli, Commands};

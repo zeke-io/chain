@@ -50,7 +50,7 @@ impl ProjectData {
 
         Ok(Self {
             root_directory: path.as_ref().to_path_buf(),
-            data_directory: Path::new(path.as_ref()).join(".msc"),
+            data_directory: Path::new(path.as_ref()).join(".chain"),
             metadata,
             settings,
         })

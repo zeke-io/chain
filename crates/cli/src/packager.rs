@@ -1,5 +1,5 @@
-use core::metadata;
-use core::metadata::ServerMetadata;
+use chain_core::metadata;
+use chain_core::metadata::ServerMetadata;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
@@ -47,7 +47,7 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
         "{}{}Package created as \"{}\".{}",
         color::Fg(color::Green),
         style::Bold,
-        format!("{}.mscpack", metadata.server.name),
+        format!("{}.chainpack", metadata.server.name),
         style::Reset,
     );
     Ok(())
@@ -79,7 +79,7 @@ fn load_files(path: &str) -> anyhow::Result<Vec<EntryFile>> {
 
     let path = Path::new(path);
     let mut walker = ignore::WalkBuilder::new(path);
-    walker.add_ignore("./.mcsignore");
+    walker.add_ignore("./.chainignore");
 
     for result in walker.build() {
         match result {
@@ -109,7 +109,7 @@ fn load_files(path: &str) -> anyhow::Result<Vec<EntryFile>> {
 }
 
 fn create_package(metadata: ServerMetadata, files: Vec<EntryFile>) -> anyhow::Result<()> {
-    let file = File::create(format!("{}.mscpack", metadata.server.name))?;
+    let file = File::create(format!("{}.chainpack", metadata.server.name))?;
     let mut zip = ZipWriter::new(file);
     let options = FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     let mut manifest_files = Vec::new();

@@ -211,6 +211,44 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
+name = "chain-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chain-core",
+ "clap",
+ "ignore",
+ "md5",
+ "serde",
+ "termion",
+ "tokio",
+ "toml",
+ "zip",
+]
+
+[[package]]
+name = "chain-core"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "reqwest",
+ "serde",
+ "serde_yaml",
+ "url",
+]
+
+[[package]]
+name = "chain-runner"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chain-core",
+ "clap",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "cipher"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -272,17 +310,6 @@ name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "245097e9a4535ee1e3e3931fcfcd55a796a44c643e8596ff6566d68f09b87bbc"
-
-[[package]]
-name = "core"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "reqwest",
- "serde",
- "serde_yaml",
- "url",
-]
 
 [[package]]
 name = "core-foundation"
@@ -788,33 +815,6 @@ dependencies = [
  "libc",
  "wasi",
  "windows-sys",
-]
-
-[[package]]
-name = "msc-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "core",
- "ignore",
- "md5",
- "serde",
- "termion",
- "tokio",
- "toml",
- "zip",
-]
-
-[[package]]
-name = "msc-runner"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "core",
- "serde",
- "serde_json",
 ]
 
 [[package]]

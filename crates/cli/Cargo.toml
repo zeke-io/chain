@@ -1,5 +1,5 @@
 [package]
-name = "msc-cli"
+name = "chain-cli"
 version = "0.1.0"
 edition.workspace = true
 publish.workspace = true
@@ -9,13 +9,13 @@ maintainer = "Zeke <ezequiel_io@pm.me>"
 copyright = "2023 <ezequiel_io@pm.me>"
 
 [[bin]]
-name = "msc"
+name = "chain"
 path = "src/main.rs"
 
 [dependencies]
 anyhow = "1.0.71"
 clap = { version = "4.3.4", features = ["derive"] }
-core = { path = "../core" }
+chain-core = { path = "../core" }
 ignore = "0.4.20"
 md5 = "0.7.0"
 serde = { version = "1.0", features = ["derive"] }
