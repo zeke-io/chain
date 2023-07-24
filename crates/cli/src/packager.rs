@@ -1,5 +1,4 @@
-use chain_core::metadata;
-use chain_core::metadata::ProjectMetadata;
+use chain_core::project;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
@@ -9,6 +8,7 @@ use std::process::exit;
 use termion::{color, style};
 use zip::write::FileOptions;
 use zip::{ZipArchive, ZipWriter};
+use chain_core::project::metadata::ProjectMetadata;
 
 struct EntryFile {
     pub path: String,
@@ -33,7 +33,7 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
         None => "./".to_string(),
     };
 
-    let metadata = metadata::from_path(path.as_str()).expect("Cannot load metadata file");
+    let metadata = project::metadata::from_path(path.as_str()).expect("Cannot load metadata file");
 
     println!(
         "{}Preparing package...{}",

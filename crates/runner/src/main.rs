@@ -1,12 +1,13 @@
 use anyhow::{anyhow, Context};
-use chain_core::metadata::ProjectMetadata;
 use chain_core::project;
-use chain_core::project::{ProjectSettings, VersionData};
+use chain_core::project::settings::ProjectSettings;
 use clap::Parser;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use chain_core::project::manifests::VersionManifest;
+use chain_core::project::metadata::ProjectMetadata;
 
 #[derive(Parser, Debug)]
 #[command(name = "chainr")]
@@ -31,7 +32,7 @@ fn main() -> anyhow::Result<()> {
         })?;
     }
 
-    let server_jar = VersionData::get_path(&project_data)
+    let server_jar = VersionManifest::get_path(&project_data)
         .context("Could not find the version file, make sure to run `chain install` first")?;
 
     prepare_dependencies(
