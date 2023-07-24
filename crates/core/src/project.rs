@@ -1,4 +1,4 @@
-use crate::metadata::{DependencyEntry, ServerMetadata};
+use crate::metadata::{DependencyEntry, ProjectMetadata};
 use crate::{metadata, utils};
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
@@ -39,7 +39,7 @@ pub struct ProjectSettings {
 pub struct ProjectData {
     root_directory: PathBuf,
     data_directory: PathBuf,
-    metadata: ServerMetadata,
+    metadata: ProjectMetadata,
     settings: ProjectSettings,
 }
 
@@ -56,7 +56,7 @@ impl ProjectData {
         })
     }
 
-    pub fn get_metadata(&self) -> ServerMetadata {
+    pub fn get_metadata(&self) -> ProjectMetadata {
         self.metadata.clone()
     }
 
@@ -68,7 +68,7 @@ impl ProjectData {
     }
 
     pub fn get_server_directory(&self) -> PathBuf {
-        let server_directory = match &self.metadata.server.server_directory {
+        let server_directory = match &self.metadata.server_directory {
             Some(path) => PathBuf::from(path),
             None => Path::new(&self.root_directory).join("server"),
         };
@@ -118,7 +118,7 @@ pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()>
     install_server_jar(
         &project_data.get_versions_directory(),
         project_data.get_data_directory(),
-        metadata.server.jar.clone(),
+        metadata.server_jar.clone(),
     )
     .await?;
 

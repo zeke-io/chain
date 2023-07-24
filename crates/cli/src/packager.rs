@@ -1,5 +1,5 @@
 use chain_core::metadata;
-use chain_core::metadata::ServerMetadata;
+use chain_core::metadata::ProjectMetadata;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
@@ -47,7 +47,7 @@ pub fn pack_server(path: Option<String>) -> anyhow::Result<()> {
         "{}{}Package created as \"{}\".{}",
         color::Fg(color::Green),
         style::Bold,
-        format!("{}.chainpack", metadata.server.name),
+        format!("{}.chainpack", metadata.name),
         style::Reset,
     );
     Ok(())
@@ -108,8 +108,8 @@ fn load_files(path: &str) -> anyhow::Result<Vec<EntryFile>> {
     Ok(files)
 }
 
-fn create_package(metadata: ServerMetadata, files: Vec<EntryFile>) -> anyhow::Result<()> {
-    let file = File::create(format!("{}.chainpack", metadata.server.name))?;
+fn create_package(metadata: ProjectMetadata, files: Vec<EntryFile>) -> anyhow::Result<()> {
+    let file = File::create(format!("{}.chainpack", metadata.name))?;
     let mut zip = ZipWriter::new(file);
     let options = FileOptions::default().compression_method(zip::CompressionMethod::Deflated);
     let mut manifest_files = Vec::new();

@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Context};
-use chain_core::metadata::ServerMetadata;
+use chain_core::metadata::ProjectMetadata;
 use chain_core::project;
 use chain_core::project::{ProjectSettings, VersionData};
 use clap::Parser;
@@ -54,7 +54,7 @@ fn main() -> anyhow::Result<()> {
 fn prepare_dependencies(
     dependencies_folder: PathBuf,
     dependencies: HashMap<String, String>,
-    metadata: ServerMetadata,
+    metadata: ProjectMetadata,
     target_directory: PathBuf,
 ) -> anyhow::Result<()> {
     if metadata.dependencies.len() != dependencies.keys().len() {
