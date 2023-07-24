@@ -1,4 +1,4 @@
-use crate::utils;
+use crate::util;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -21,7 +21,7 @@ pub struct ProjectMetadata {
 }
 
 pub fn from_path<P: AsRef<Path>>(path: P) -> anyhow::Result<ProjectMetadata> {
-    let metadata_file = utils::append_or_check_file(path, "chain.yml")
+    let metadata_file = util::file::append_or_check_file(path, "chain.yml")
         .context("Could not find \"chain.yml\" file")?;
 
     let contents =

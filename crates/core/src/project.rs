@@ -1,5 +1,5 @@
 use crate::metadata::{DependencyEntry, ProjectMetadata};
-use crate::{metadata, utils};
+use crate::{metadata, util};
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -99,7 +99,7 @@ pub fn load_settings<P: AsRef<Path>>(path: P, is_dev: bool) -> anyhow::Result<Pr
     } else {
         "settings.yml"
     };
-    let settings_file = utils::append_or_check_file(path, settings_file_name)
+    let settings_file = util::file::append_or_check_file(path, settings_file_name)
         .context(format!("Could not find \"{}\" file", settings_file_name))?;
 
     let contents = fs::read_to_string(settings_file)
@@ -141,13 +141,13 @@ async fn install_server_jar(
     let path: PathBuf;
     fs::create_dir_all(&directory)?;
 
-    if utils::is_url(&server_source_path) {
+    if util::url::is_url(&server_source_path) {
         println!(
             "Downloading server JAR file \"{}\"...",
-            utils::get_filename_from_downloadable_file(&server_source_path)
+            util::url::get_filename_from_url(&server_source_path)
         );
 
-        path = utils::download_file(server_source_path.clone(), directory.clone()).await?;
+        path = util::url::download_file(server_source_path.clone(), directory.clone()).await?;
     } else {
         println!("Installing server JAR from \"{}\"...", server_source_path);
         let source_path = PathBuf::from(&server_source_path);
@@ -201,7 +201,7 @@ async fn install_plugins(
                 &plugin.name, &download_url
             );
 
-            utils::download_file(download_url.clone(), plugin_path).await?;
+            util::url::download_file(download_url.clone(), plugin_path).await?;
             continue;
         }
 
