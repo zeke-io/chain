@@ -1,9 +1,8 @@
-use crate::util;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProjectSettings {
@@ -20,19 +19,26 @@ pub(crate) fn load_settings<P: AsRef<Path>>(
     path: P,
     is_dev: bool,
 ) -> anyhow::Result<ProjectSettings> {
-    let settings_file_name = if is_dev {
-        "settings.dev.yml"
-    } else {
-        "settings.yml"
-    };
-    let settings_file = util::file::append_or_check_file(path, settings_file_name)
-        .context(format!("Could not find \"{}\" file", settings_file_name))?;
+    fn inner(path: PathBuf) -> anyhow::Result<ProjectSettings> {
+        let settings_file =
+            fs::read_to_string(&path).context("Could not find settings file, please create one")?;
 
-    let contents = fs::read_to_string(settings_file)
-        .context(format!("Could not read \"{}\" file", settings_file_name))?;
+        let settings: ProjectSettings = serde_yaml::from_str(&settings_file).context(format!(
+            "The settings file at \"{}\" is not invalid.",
+            path.display()
+        ))?;
 
-    let settings: ProjectSettings = serde_yaml::from_str(&contents)
-        .context(format!("Could not parse \"{}\" file", settings_file_name))?;
+        Ok(settings)
+    }
 
-    Ok(settings)
+    let path = path.as_ref();
+
+    if is_dev {
+        match inner(path.join("settings.dev.yml")) {
+            Ok(settings) => return Ok(settings),
+            Err(err) => eprintln!("{}\nAttempting to load \"settings.yml\" file...", err),
+        }
+    }
+
+    inner(path.join("settings.yml"))
 }
