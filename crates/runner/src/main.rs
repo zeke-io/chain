@@ -20,9 +20,10 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     let directory = std::env::current_dir()?;
 
-    let project_data: project::ProjectData = project::ProjectData::load(&directory, args.dev)?;
-    let server_directory = project_data.get_server_directory();
+    let project = project::load_project(&directory)?;
+    let settings = project.get_settings(args.dev)?;
 
+    let server_directory = directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
         fs::create_dir_all(&server_directory).with_context(|| {
             format!(
@@ -32,22 +33,23 @@ fn main() -> anyhow::Result<()> {
         })?;
     }
 
-    let server_jar = VersionManifest::get_path(&project_data)
-        .context("Could not find the version file, make sure to run `chain install` first")?;
+    let server_jar = project.project_details.server_jar;
 
-    prepare_dependencies(
-        project_data.get_dependencies_directory(),
-        project_data.get_dependencies_manifest().unwrap(),
-        project_data.get_metadata(),
-        server_directory.join("plugins"),
-    )?;
-    process_overrides(project_data.get_settings(), server_directory.as_path())?;
-    run_server(
-        server_directory.as_path(),
-        server_jar,
-        project_data.get_settings(),
-    )?
-    .wait()?;
+    // prepare_dependencies(
+    //     project_data.get_dependencies_directory(),
+    //     project_data.get_dependencies_manifest().unwrap(),
+    //     project_data.get_metadata(),
+    //     server_directory.join("plugins"),
+    // )?;
+
+    // process_overrides(project_data.get_settings(), server_directory.as_path())?;
+
+    // run_server(
+    //     server_directory.as_path(),
+    //     server_jar,
+    //     project_data.get_settings(),
+    // )?
+    // .wait()?;
 
     Ok(())
 }

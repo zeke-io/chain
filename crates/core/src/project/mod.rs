@@ -1,14 +1,56 @@
-pub mod manifests;
-pub mod settings;
 mod installer;
+pub mod manifests;
 pub mod metadata;
+pub mod settings;
 
+use crate::project::metadata::ProjectMetadata;
 use crate::project::settings::ProjectSettings;
+use anyhow::Context;
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use crate::project::metadata::ProjectMetadata;
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "kebab-case")]
+pub struct ProjectDetails {
+    pub name: String,
+    pub server_jar: String,
+    pub dependencies: HashMap<String, String>,
+}
+
+pub struct Project {
+    pub root_directory: PathBuf,
+    pub project_details: ProjectDetails,
+}
+
+impl Project {
+    pub(crate) fn new(directory: &Path, details: ProjectDetails) -> Self {
+        Self {
+            root_directory: directory.to_path_buf(),
+            project_details: details,
+        }
+    }
+
+    pub fn get_settings(&self, is_dev: bool) -> anyhow::Result<ProjectSettings> {
+        settings::load_settings(&self.root_directory, is_dev)
+    }
+}
+
+pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
+    let path = path.as_ref();
+
+    let details_file = fs::read_to_string(path.join("chain.yml"))
+        .context("Could not find \"chain.yml\" file, please create one")?;
+    let details: ProjectDetails = serde_yaml::from_str(&details_file)
+        .with_context(|| "The project file \"chain.yml\" is invalid.")?;
+
+    let project = Project::new(path, details);
+
+    Ok(project)
+}
+
+#[deprecated]
 pub struct ProjectData {
     root_directory: PathBuf,
     data_directory: PathBuf,
