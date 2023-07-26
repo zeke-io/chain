@@ -1,5 +1,6 @@
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
 
@@ -31,5 +32,39 @@ impl Manifest for VersionManifest {
         version_data.versions_directory = data_directory.join("versions");
 
         Ok(version_data)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DependencyDetails {
+    pub file_name: String,
+    pub source: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DependenciesManifestFile(HashMap<String, DependencyDetails>);
+
+pub struct DependenciesManifest {
+    pub dependencies: HashMap<String, DependencyDetails>,
+    pub dependencies_directory: PathBuf,
+}
+
+impl Manifest for DependenciesManifest {
+    type ManifestType = DependenciesManifest;
+
+    fn load_manifest(project_directory: &PathBuf) -> anyhow::Result<Self::ManifestType> {
+        let data_directory = project_directory.join(".chain");
+        let contents = fs::read_to_string(data_directory.join("dependencies.yml"))
+            .context("Could not find dependencies manifest file")?;
+
+        let dependencies: DependenciesManifestFile = serde_yaml::from_str(&contents)
+            .context("Could not parse dependencies manifest file")?;
+
+        let manifest = DependenciesManifest {
+            dependencies: dependencies.0,
+            dependencies_directory: data_directory.join("dependencies"),
+        };
+
+        Ok(manifest)
     }
 }

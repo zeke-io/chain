@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Context};
 use chain_core::project;
-use chain_core::project::manifests::VersionManifest;
-use chain_core::project::metadata::ProjectMetadata;
+use chain_core::project::manifests::{DependenciesManifest, DependencyDetails, VersionManifest};
 use chain_core::project::settings::ProjectSettings;
 use clap::Parser;
 use std::collections::HashMap;
@@ -23,6 +22,7 @@ fn main() -> anyhow::Result<()> {
     let project = project::load_project(&directory)?;
     let settings = project.get_settings(args.dev)?;
     let version = project.get_manifest::<VersionManifest>()?;
+    let dependencies = project.get_manifest::<DependenciesManifest>()?;
 
     let server_directory = directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
@@ -38,12 +38,12 @@ fn main() -> anyhow::Result<()> {
         .versions_directory
         .join(project.project_details.server_jar);
 
-    // prepare_dependencies(
-    //     project_data.get_dependencies_directory(),
-    //     project_data.get_dependencies_manifest().unwrap(),
-    //     project_data.get_metadata(),
-    //     server_directory.join("plugins"),
-    // )?;
+    prepare_dependencies(
+        dependencies.dependencies_directory,
+        dependencies.dependencies,
+        project.project_details.dependencies,
+        server_directory.join("plugins"),
+    )?;
 
     process_overrides(settings.clone(), server_directory.clone())?;
 
@@ -54,51 +54,53 @@ fn main() -> anyhow::Result<()> {
 
 fn prepare_dependencies(
     dependencies_folder: PathBuf,
+    cached_dependencies: HashMap<String, DependencyDetails>,
     dependencies: HashMap<String, String>,
-    metadata: ProjectMetadata,
     target_directory: PathBuf,
 ) -> anyhow::Result<()> {
-    if metadata.dependencies.len() != dependencies.keys().len() {
+    fn compare_dependencies(
+        dependencies: HashMap<String, String>,
+        cached_dependencies: &HashMap<String, DependencyDetails>,
+    ) -> bool {
+        if dependencies.len() != cached_dependencies.len() {
+            return false;
+        }
+
+        for (id, source) in dependencies {
+            if let Some(dep_details) = cached_dependencies.get(id.as_str()) {
+                if source != dep_details.source {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    if !compare_dependencies(dependencies, &cached_dependencies) {
         return Err(anyhow!(
             "Detected dependency changes, make sure to run `chain install` first"
         ));
     }
 
-    for dependency_entry in metadata.dependencies {
-        let source = dependencies
-            .get(&dependency_entry.name)
-            .expect("Detected dependency changes, make sure to run `chain install` first");
+    for (id, dep_details) in cached_dependencies {
+        println!("Preparing dependency \"{}\"...", id);
 
-        if let Some(path) = dependency_entry.path {
-            if &path != source {
-                return Err(anyhow!(
-                    "Detected dependency changes, make sure to run `chain install` first"
-                ));
-            }
-        }
-
-        if let Some(url) = dependency_entry.download_url {
-            if &url != source {
-                return Err(anyhow!(
-                    "Detected dependency changes, make sure to run `chain install` first"
-                ));
-            }
-        }
-    }
-
-    for dependency in dependencies.keys() {
-        println!("Preparing dependency \"{}\"...", dependency);
-        let dependency_file = Path::new(&dependencies_folder).join(dependency);
-
+        let dependency_file = Path::new(&dependencies_folder).join(&dep_details.file_name);
         if !dependency_file.exists() {
             return Err(anyhow!(
-                "Dependency file \"{}\" was not found, make sure to run `chain install` first",
-                dependency
+                "Dependency \"{}\" was not found, make sure to run `chain install` first",
+                id
             ));
         }
 
         fs::create_dir_all(&target_directory)?;
-        fs::copy(&dependency_file, target_directory.join(dependency))?;
+        fs::copy(
+            &dependency_file,
+            target_directory.join(dep_details.file_name),
+        )?;
     }
 
     Ok(())
