@@ -1,13 +1,13 @@
 use anyhow::{anyhow, Context};
 use chain_core::project;
+use chain_core::project::manifests::VersionManifest;
+use chain_core::project::metadata::ProjectMetadata;
 use chain_core::project::settings::ProjectSettings;
 use clap::Parser;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use chain_core::project::manifests::VersionManifest;
-use chain_core::project::metadata::ProjectMetadata;
 
 #[derive(Parser, Debug)]
 #[command(name = "chainr")]
@@ -22,6 +22,7 @@ fn main() -> anyhow::Result<()> {
 
     let project = project::load_project(&directory)?;
     let settings = project.get_settings(args.dev)?;
+    let version = project.get_manifest::<VersionManifest>()?;
 
     let server_directory = directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
@@ -33,7 +34,9 @@ fn main() -> anyhow::Result<()> {
         })?;
     }
 
-    let server_jar = project.project_details.server_jar;
+    let server_jar = version
+        .versions_directory
+        .join(project.project_details.server_jar);
 
     // prepare_dependencies(
     //     project_data.get_dependencies_directory(),
@@ -42,14 +45,9 @@ fn main() -> anyhow::Result<()> {
     //     server_directory.join("plugins"),
     // )?;
 
-    // process_overrides(project_data.get_settings(), server_directory.as_path())?;
+    process_overrides(settings.clone(), server_directory.clone())?;
 
-    // run_server(
-    //     server_directory.as_path(),
-    //     server_jar,
-    //     project_data.get_settings(),
-    // )?
-    // .wait()?;
+    run_server(server_directory, server_jar, settings)?.wait()?;
 
     Ok(())
 }
@@ -106,7 +104,11 @@ fn prepare_dependencies(
     Ok(())
 }
 
-fn process_overrides(settings: ProjectSettings, server_directory: &Path) -> anyhow::Result<()> {
+fn process_overrides<P: AsRef<Path>>(
+    settings: ProjectSettings,
+    server_directory: P,
+) -> anyhow::Result<()> {
+    let server_directory = server_directory.as_ref();
     for file_target in settings.overrides.keys() {
         let value = settings.overrides.get(file_target).unwrap();
         let source_file = Path::new(value);
@@ -135,8 +137,8 @@ fn process_overrides(settings: ProjectSettings, server_directory: &Path) -> anyh
     Ok(())
 }
 
-fn run_server(
-    server_directory: &Path,
+fn run_server<P: AsRef<Path>>(
+    server_directory: P,
     server_jar: PathBuf,
     settings: ProjectSettings,
 ) -> anyhow::Result<Child> {

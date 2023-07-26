@@ -1,10 +1,10 @@
 use crate::project::manifests::VersionManifest;
-use crate::{util};
+use crate::project::metadata::DependencyEntry;
+use crate::util;
 use anyhow::{anyhow, Context};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use crate::project::metadata::DependencyEntry;
 
 pub(crate) async fn install_server_jar(
     directory: &PathBuf,
@@ -34,6 +34,7 @@ pub(crate) async fn install_server_jar(
         path = dest_path;
     }
 
+    // TODO: Refactor
     let version_data = VersionManifest {
         source: server_source_path,
         jar_file: path
@@ -41,6 +42,7 @@ pub(crate) async fn install_server_jar(
             .and_then(|name| name.to_str())
             .unwrap()
             .into(),
+        versions_directory: Default::default(),
     };
 
     let version_data_file = serde_yaml::to_string(&version_data)?;

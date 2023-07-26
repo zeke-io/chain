@@ -3,6 +3,7 @@ pub mod manifests;
 pub mod metadata;
 pub mod settings;
 
+use crate::project::manifests::Manifest;
 use crate::project::metadata::ProjectMetadata;
 use crate::project::settings::ProjectSettings;
 use anyhow::Context;
@@ -34,6 +35,11 @@ impl Project {
 
     pub fn get_settings(&self, is_dev: bool) -> anyhow::Result<ProjectSettings> {
         settings::load_settings(&self.root_directory, is_dev)
+    }
+
+    pub fn get_manifest<T: Manifest>(&self) -> anyhow::Result<T::ManifestType> {
+        let manifest = T::load_manifest(&self.root_directory).unwrap();
+        Ok(manifest)
     }
 }
 

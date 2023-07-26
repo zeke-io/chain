@@ -1,4 +1,5 @@
 use chain_core::project;
+use chain_core::project::metadata::ProjectMetadata;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;
@@ -8,7 +9,6 @@ use std::process::exit;
 use termion::{color, style};
 use zip::write::FileOptions;
 use zip::{ZipArchive, ZipWriter};
-use chain_core::project::metadata::ProjectMetadata;
 
 struct EntryFile {
     pub path: String,
