@@ -3,8 +3,7 @@ pub mod manifests;
 pub mod metadata;
 pub mod settings;
 
-use crate::project::manifests::Manifest;
-use crate::project::metadata::ProjectMetadata;
+use crate::project::manifests::{Manifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
@@ -56,7 +55,7 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     Ok(project)
 }
 
-#[deprecated]
+/*#[deprecated]
 pub struct ProjectData {
     root_directory: PathBuf,
     data_directory: PathBuf,
@@ -112,26 +111,29 @@ impl ProjectData {
     pub fn get_settings(&self) -> ProjectSettings {
         self.settings.clone()
     }
-}
+}*/
 
-pub async fn install(root_directory: PathBuf, force: bool) -> anyhow::Result<()> {
-    let project_data = ProjectData::load(&root_directory, true)?;
-    let metadata = project_data.metadata.clone();
+pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()> {
+    let project = load_project(root_directory)?;
 
-    installer::install_server_jar(
-        &project_data.get_versions_directory(),
-        project_data.get_data_directory(),
-        metadata.server_jar.clone(),
+    let server_jar_path = installer::download_server(
+        &project.project_details.server_jar,
+        project.root_directory.join(".chain").join("versions"),
     )
     .await?;
 
-    installer::install_plugins(
-        &project_data.data_directory,
-        &project_data.get_dependencies_directory(),
-        metadata.dependencies,
-        force,
-    )
-    .await?;
+    let version_manifest =
+        VersionManifest::new(&project.project_details.server_jar, server_jar_path);
+
+    version_manifest.save_manifest(&project.root_directory.join(".chain").join("version.yml"))?;
+
+    // installer::install_plugins(
+    //     &project_data.data_directory,
+    //     &project_data.get_dependencies_directory(),
+    //     metadata.dependencies,
+    //     force,
+    // )
+    // .await?;
 
     Ok(())
 }

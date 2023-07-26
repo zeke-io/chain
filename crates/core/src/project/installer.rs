@@ -1,4 +1,3 @@
-use crate::project::manifests::VersionManifest;
 use crate::project::metadata::DependencyEntry;
 use crate::util;
 use anyhow::{anyhow, Context};
@@ -6,47 +5,33 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub(crate) async fn install_server_jar(
-    directory: &PathBuf,
-    data_directory: &Path,
-    server_source_path: String,
+pub(crate) async fn download_server(
+    source: &str,
+    target_directory: PathBuf,
 ) -> anyhow::Result<PathBuf> {
     let path: PathBuf;
-    fs::create_dir_all(&directory)?;
+    fs::create_dir_all(&target_directory)?;
 
-    if util::url::is_url(&server_source_path) {
+    if util::url::is_url(source) {
         println!(
             "Downloading server JAR file \"{}\"...",
-            util::url::get_filename_from_url(&server_source_path)
+            util::url::get_filename_from_url(source)
         );
 
-        path = util::url::download_file(server_source_path.clone(), directory.clone()).await?;
+        path = util::url::download_file(source.into(), target_directory).await?;
     } else {
-        println!("Installing server JAR from \"{}\"...", server_source_path);
-        let source_path = PathBuf::from(&server_source_path);
+        println!("Installing server JAR from \"{}\"...", source);
+
+        let source_path = PathBuf::from(source);
         let file_name = Path::new(&source_path)
             .file_name()
             .and_then(|name| name.to_str())
             .unwrap_or("server.jar");
-        let dest_path = Path::new(&directory).join(file_name);
+        let dest_path = Path::new(&target_directory).join(file_name);
 
         fs::copy(source_path, &dest_path).context("Could not copy server JAR file")?;
         path = dest_path;
     }
-
-    // TODO: Refactor
-    let version_data = VersionManifest {
-        source: server_source_path,
-        jar_file: path
-            .file_name()
-            .and_then(|name| name.to_str())
-            .unwrap()
-            .into(),
-        versions_directory: Default::default(),
-    };
-
-    let version_data_file = serde_yaml::to_string(&version_data)?;
-    fs::write(data_directory.join("version.yml"), version_data_file)?;
 
     Ok(path)
 }

@@ -8,6 +8,7 @@ pub trait Manifest {
     type ManifestType;
 
     fn load_manifest(project_directory: &PathBuf) -> anyhow::Result<Self::ManifestType>;
+    fn save_manifest(&self, directory: &PathBuf) -> anyhow::Result<()>;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -17,6 +18,16 @@ pub struct VersionManifest {
 
     #[serde(skip_serializing)]
     pub versions_directory: PathBuf,
+}
+
+impl VersionManifest {
+    pub fn new(source: &str, jar_path: PathBuf) -> Self {
+        Self {
+            jar_file: jar_path.into_os_string().into_string().unwrap(),
+            source: source.to_string(),
+            versions_directory: Default::default(),
+        }
+    }
 }
 
 impl Manifest for VersionManifest {
@@ -32,6 +43,11 @@ impl Manifest for VersionManifest {
         version_data.versions_directory = data_directory.join("versions");
 
         Ok(version_data)
+    }
+
+    fn save_manifest(&self, directory: &PathBuf) -> anyhow::Result<()> {
+        let parsed_manifest = serde_yaml::to_string(&self)?;
+        fs::write(directory, parsed_manifest).context("Could not save manifest file")
     }
 }
 
@@ -66,5 +82,10 @@ impl Manifest for DependenciesManifest {
         };
 
         Ok(manifest)
+    }
+
+    fn save_manifest(&self, directory: &PathBuf) -> anyhow::Result<()> {
+        let parsed_manifest = serde_yaml::to_string(&self.dependencies)?;
+        fs::write(directory, parsed_manifest).context("Could not save manifest file")
     }
 }
