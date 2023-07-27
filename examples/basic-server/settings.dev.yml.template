@@ -1,0 +1,12 @@
+java_runtime: "/path/to/java"
+
+jvm-options:
+  - "-Dfile.encoding=UTF-8"
+  - "-Xmx3G"
+
+server-args:
+  - "--nogui"
+
+override:
+  # Notice the '.dev' before the extension
+  'server.properties': "config/server.dev.properties"
