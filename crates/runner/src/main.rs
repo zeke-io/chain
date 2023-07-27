@@ -1,13 +1,12 @@
 use anyhow::{anyhow, Context};
 use chain_core::project;
+use chain_core::project::manifests::{DependenciesManifest, DependencyDetails, VersionManifest};
 use chain_core::project::settings::ProjectSettings;
 use clap::Parser;
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use chain_core::project::manifests::VersionManifest;
-use chain_core::project::metadata::ProjectMetadata;
 
 #[derive(Parser, Debug)]
 #[command(name = "chainr")]
@@ -20,9 +19,12 @@ fn main() -> anyhow::Result<()> {
     let args = Args::parse();
     let directory = std::env::current_dir()?;
 
-    let project_data: project::ProjectData = project::ProjectData::load(&directory, args.dev)?;
-    let server_directory = project_data.get_server_directory();
+    let project = project::load_project(&directory)?;
+    let settings = project.get_settings(args.dev)?;
+    let version = project.get_manifest::<VersionManifest>()?;
+    let dependencies = project.get_manifest::<DependenciesManifest>()?;
 
+    let server_directory = directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
         fs::create_dir_all(&server_directory).with_context(|| {
             format!(
@@ -32,79 +34,84 @@ fn main() -> anyhow::Result<()> {
         })?;
     }
 
-    let server_jar = VersionManifest::get_path(&project_data)
-        .context("Could not find the version file, make sure to run `chain install` first")?;
+    let server_jar = PathBuf::from(version.jar_file);
 
     prepare_dependencies(
-        project_data.get_dependencies_directory(),
-        project_data.get_dependencies_manifest().unwrap(),
-        project_data.get_metadata(),
+        dependencies.dependencies,
+        project.project_details.dependencies,
         server_directory.join("plugins"),
     )?;
-    process_overrides(project_data.get_settings(), server_directory.as_path())?;
-    run_server(
-        server_directory.as_path(),
-        server_jar,
-        project_data.get_settings(),
-    )?
-    .wait()?;
+
+    process_overrides(settings.clone(), server_directory.clone())?;
+
+    run_server(server_directory, server_jar, settings)?.wait()?;
 
     Ok(())
 }
 
 fn prepare_dependencies(
-    dependencies_folder: PathBuf,
+    cached_dependencies: HashMap<String, DependencyDetails>,
     dependencies: HashMap<String, String>,
-    metadata: ProjectMetadata,
     target_directory: PathBuf,
 ) -> anyhow::Result<()> {
-    if metadata.dependencies.len() != dependencies.keys().len() {
+    fn compare_dependencies(
+        dependencies: HashMap<String, String>,
+        cached_dependencies: &HashMap<String, DependencyDetails>,
+    ) -> bool {
+        if dependencies.len() != cached_dependencies.len() {
+            return false;
+        }
+
+        for (id, source) in dependencies {
+            if let Some(dep_details) = cached_dependencies.get(id.as_str()) {
+                if source != dep_details.source {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    if !compare_dependencies(dependencies, &cached_dependencies) {
         return Err(anyhow!(
             "Detected dependency changes, make sure to run `chain install` first"
         ));
     }
 
-    for dependency_entry in metadata.dependencies {
-        let source = dependencies
-            .get(&dependency_entry.name)
-            .expect("Detected dependency changes, make sure to run `chain install` first");
+    for (id, dep_details) in cached_dependencies {
+        println!("Preparing dependency \"{}\"...", id);
 
-        if let Some(path) = dependency_entry.path {
-            if &path != source {
-                return Err(anyhow!(
-                    "Detected dependency changes, make sure to run `chain install` first"
-                ));
-            }
-        }
-
-        if let Some(url) = dependency_entry.download_url {
-            if &url != source {
-                return Err(anyhow!(
-                    "Detected dependency changes, make sure to run `chain install` first"
-                ));
-            }
-        }
-    }
-
-    for dependency in dependencies.keys() {
-        println!("Preparing dependency \"{}\"...", dependency);
-        let dependency_file = Path::new(&dependencies_folder).join(dependency);
-
+        let dependency_file = Path::new(&dep_details.file_path);
         if !dependency_file.exists() {
             return Err(anyhow!(
-                "Dependency file \"{}\" was not found, make sure to run `chain install` first",
-                dependency
+                "Dependency \"{}\" was not found, make sure to run `chain install` first",
+                id
             ));
         }
 
         fs::create_dir_all(&target_directory)?;
-        fs::copy(&dependency_file, target_directory.join(dependency))?;
+        fs::copy(
+            &dependency_file,
+            target_directory.join(
+                dependency_file
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or(format!("{}.jar", id).as_str()),
+            ),
+        )?;
     }
 
     Ok(())
 }
 
-fn process_overrides(settings: ProjectSettings, server_directory: &Path) -> anyhow::Result<()> {
+fn process_overrides<P: AsRef<Path>>(
+    settings: ProjectSettings,
+    server_directory: P,
+) -> anyhow::Result<()> {
+    let server_directory = server_directory.as_ref();
     for file_target in settings.overrides.keys() {
         let value = settings.overrides.get(file_target).unwrap();
         let source_file = Path::new(value);
@@ -133,8 +140,8 @@ fn process_overrides(settings: ProjectSettings, server_directory: &Path) -> anyh
     Ok(())
 }
 
-fn run_server(
-    server_directory: &Path,
+fn run_server<P: AsRef<Path>>(
+    server_directory: P,
     server_jar: PathBuf,
     settings: ProjectSettings,
 ) -> anyhow::Result<Child> {
