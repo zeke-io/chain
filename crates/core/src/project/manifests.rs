@@ -16,7 +16,7 @@ pub struct VersionManifest {
     pub jar_file: String,
     pub source: String,
 
-    #[serde(skip_serializing)]
+    #[serde(skip_serializing, skip_deserializing)]
     pub versions_directory: PathBuf,
 }
 

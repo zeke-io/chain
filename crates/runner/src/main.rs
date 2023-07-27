@@ -34,12 +34,9 @@ fn main() -> anyhow::Result<()> {
         })?;
     }
 
-    let server_jar = version
-        .versions_directory
-        .join(project.project_details.server_jar);
+    let server_jar = PathBuf::from(version.jar_file);
 
     prepare_dependencies(
-        dependencies.dependencies_directory,
         dependencies.dependencies,
         project.project_details.dependencies,
         server_directory.join("plugins"),
@@ -53,7 +50,6 @@ fn main() -> anyhow::Result<()> {
 }
 
 fn prepare_dependencies(
-    dependencies_folder: PathBuf,
     cached_dependencies: HashMap<String, DependencyDetails>,
     dependencies: HashMap<String, String>,
     target_directory: PathBuf,
@@ -88,7 +84,7 @@ fn prepare_dependencies(
     for (id, dep_details) in cached_dependencies {
         println!("Preparing dependency \"{}\"...", id);
 
-        let dependency_file = Path::new(&dependencies_folder).join(&dep_details.file_path);
+        let dependency_file = Path::new(&dep_details.file_path);
         if !dependency_file.exists() {
             return Err(anyhow!(
                 "Dependency \"{}\" was not found, make sure to run `chain install` first",
@@ -99,7 +95,12 @@ fn prepare_dependencies(
         fs::create_dir_all(&target_directory)?;
         fs::copy(
             &dependency_file,
-            target_directory.join(dep_details.file_path),
+            target_directory.join(
+                dependency_file
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .unwrap_or(format!("{}.jar", id).as_str()),
+            ),
         )?;
     }
 
