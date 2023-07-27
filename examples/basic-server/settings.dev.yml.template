@@ -7,6 +7,6 @@ jvm-options:
 server-args:
   - "--nogui"
 
-override:
+overrides:
   # Notice the '.dev' before the extension
   'server.properties': "config/server.dev.properties"
