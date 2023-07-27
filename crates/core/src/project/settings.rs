@@ -15,6 +15,17 @@ pub struct ProjectSettings {
     pub overrides: HashMap<String, String>,
 }
 
+impl Default for ProjectSettings {
+    fn default() -> Self {
+        Self {
+            java_runtime: "java".to_string(),
+            jvm_options: vec![],
+            server_args: vec![],
+            overrides: Default::default(),
+        }
+    }
+}
+
 pub(crate) fn load_settings<P: AsRef<Path>>(
     path: P,
     is_dev: bool,

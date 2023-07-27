@@ -246,6 +246,7 @@ dependencies = [
  "clap",
  "serde",
  "serde_json",
+ "termion",
 ]
 
 [[package]]

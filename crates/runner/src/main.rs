@@ -7,6 +7,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
+use termion::{color, style};
 
 #[derive(Parser, Debug)]
 #[command(name = "chainr")]
@@ -20,7 +21,13 @@ fn main() -> anyhow::Result<()> {
     let directory = std::env::current_dir()?;
 
     let project = project::load_project(&directory)?;
-    let settings = project.get_settings(args.dev)?;
+    let settings = match project.get_settings(args.dev) {
+        Ok(settings) => settings,
+        Err(_) => {
+            println!("{}No settings file was provided, using default values...{}", color::Fg(color::Yellow), style::Reset);
+            ProjectSettings::default()
+        }
+    };
     let version = project.get_manifest::<VersionManifest>()?;
     let dependencies = project.get_manifest::<DependenciesManifest>()?;
 
@@ -44,8 +51,8 @@ fn main() -> anyhow::Result<()> {
 
     process_overrides(settings.clone(), server_directory.clone())?;
 
+    println!("{}Running server...{}", color::Fg(color::Green), style::Reset);
     run_server(server_directory, server_jar, settings)?.wait()?;
-
     Ok(())
 }
 
@@ -82,8 +89,6 @@ fn prepare_dependencies(
     }
 
     for (id, dep_details) in cached_dependencies {
-        println!("Preparing dependency \"{}\"...", id);
-
         let dependency_file = Path::new(&dep_details.file_path);
         if !dependency_file.exists() {
             return Err(anyhow!(
