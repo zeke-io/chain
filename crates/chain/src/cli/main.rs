@@ -1,4 +1,4 @@
-use chain_core::project;
+use chain::project;
 use clap::Parser;
 use std::path::PathBuf;
 
@@ -6,6 +6,7 @@ use crate::commands::{Cli, Commands};
 
 mod commands;
 mod packager;
+mod template;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -17,6 +18,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     match cli.command {
+        Commands::Init => template::generate_template(directory),
         Commands::Install { force } => project::install(directory, force).await,
         _ => {
             println!("This command is not implemented yet!");

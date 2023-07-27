@@ -11,16 +11,18 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
+    #[command(about = "Initializes a project with a basic template")]
+    Init,
     #[command(about = "Installs the files and plugins")]
     Install {
         #[arg(short, long)]
         force: bool,
     },
-    #[command(about = "Pack a server and its files")]
-    Pack,
-    #[command(about = "Unpack a server package")]
-    Unpack {
-        #[arg(short, long)]
-        force: bool,
-    },
+    // #[command(about = "Pack a server and its files")]
+    // Pack,
+    // #[command(about = "Unpack a server package")]
+    // Unpack {
+    //     #[arg(short, long)]
+    //     force: bool,
+    // },
 }
