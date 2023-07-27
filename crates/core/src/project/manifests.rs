@@ -36,10 +36,10 @@ impl Manifest for VersionManifest {
     fn load_manifest(project_directory: &PathBuf) -> anyhow::Result<Self::ManifestType> {
         let data_directory = project_directory.join(".chain");
         let contents = fs::read_to_string(data_directory.join("version.yml"))
-            .context("Could not find version info")?;
+            .context("Could not find version manifest file")?;
 
         let mut version_data: VersionManifest =
-            serde_yaml::from_str(&contents).context("Could not parse version info")?;
+            serde_yaml::from_str(&contents).context("Could not parse version manifest file")?;
         version_data.versions_directory = data_directory.join("versions");
 
         Ok(version_data)
