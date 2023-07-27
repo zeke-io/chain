@@ -14,6 +14,8 @@ use termion::{color, style};
 struct Args {
     #[arg(short, long)]
     dev: bool,
+    #[arg(long)]
+    no_setup: bool,
 }
 
 fn main() -> anyhow::Result<()> {
@@ -39,6 +41,8 @@ fn main() -> anyhow::Result<()> {
         "Dependencies manifest file was not found, make sure to run `chain install` first",
     )?;
 
+    let server_jar = PathBuf::from(version.jar_file);
+
     let server_directory = directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
         fs::create_dir_all(&server_directory).with_context(|| {
@@ -49,15 +53,21 @@ fn main() -> anyhow::Result<()> {
         })?;
     }
 
-    let server_jar = PathBuf::from(version.jar_file);
+    if !args.no_setup {
+        prepare_dependencies(
+            dependencies.dependencies,
+            project.project_details.dependencies,
+            server_directory.join("plugins"),
+        )?;
 
-    prepare_dependencies(
-        dependencies.dependencies,
-        project.project_details.dependencies,
-        server_directory.join("plugins"),
-    )?;
-
-    process_overrides(settings.clone(), server_directory.clone())?;
+        process_overrides(settings.clone(), server_directory.clone())?;
+    } else {
+        println!(
+            "{}Skipping setup, this is only recommended when running the server for the first time...{}",
+            color::Fg(color::Yellow),
+            style::Reset
+        );
+    }
 
     println!(
         "{}Running server...{}",
