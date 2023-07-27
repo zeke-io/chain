@@ -16,6 +16,7 @@ use std::path::{Path, PathBuf};
 pub struct ProjectDetails {
     pub name: String,
     pub server_jar: String,
+    #[serde(default)]
     pub dependencies: HashMap<String, String>,
 }
 
