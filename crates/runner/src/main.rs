@@ -88,7 +88,7 @@ fn prepare_dependencies(
     for (id, dep_details) in cached_dependencies {
         println!("Preparing dependency \"{}\"...", id);
 
-        let dependency_file = Path::new(&dependencies_folder).join(&dep_details.file_name);
+        let dependency_file = Path::new(&dependencies_folder).join(&dep_details.file_path);
         if !dependency_file.exists() {
             return Err(anyhow!(
                 "Dependency \"{}\" was not found, make sure to run `chain install` first",
@@ -99,7 +99,7 @@ fn prepare_dependencies(
         fs::create_dir_all(&target_directory)?;
         fs::copy(
             &dependency_file,
-            target_directory.join(dep_details.file_name),
+            target_directory.join(dep_details.file_path),
         )?;
     }
 

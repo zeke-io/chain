@@ -53,7 +53,7 @@ impl Manifest for VersionManifest {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DependencyDetails {
-    pub file_name: String,
+    pub file_path: String,
     pub source: String,
 }
 
@@ -63,6 +63,15 @@ pub struct DependenciesManifestFile(HashMap<String, DependencyDetails>);
 pub struct DependenciesManifest {
     pub dependencies: HashMap<String, DependencyDetails>,
     pub dependencies_directory: PathBuf,
+}
+
+impl DependenciesManifest {
+    pub fn new(dependencies: HashMap<String, DependencyDetails>) -> Self {
+        Self {
+            dependencies,
+            dependencies_directory: Default::default(),
+        }
+    }
 }
 
 impl Manifest for DependenciesManifest {
