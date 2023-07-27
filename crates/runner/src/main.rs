@@ -24,14 +24,20 @@ fn main() -> anyhow::Result<()> {
     let settings = match project.get_settings(args.dev) {
         Ok(settings) => settings,
         Err(_) => {
-            println!("{}No settings file was provided, using default values...{}", color::Fg(color::Yellow), style::Reset);
+            println!(
+                "{}No settings file was provided, using default values...{}",
+                color::Fg(color::Yellow),
+                style::Reset
+            );
             ProjectSettings::default()
         }
     };
-    let version = project.get_manifest::<VersionManifest>()
+    let version = project
+        .get_manifest::<VersionManifest>()
         .context("Version manifest file was not found, make sure to run `chain install` first")?;
-    let dependencies = project.get_manifest::<DependenciesManifest>()
-        .context("Dependencies manifest file was not found, make sure to run `chain install` first")?;
+    let dependencies = project.get_manifest::<DependenciesManifest>().context(
+        "Dependencies manifest file was not found, make sure to run `chain install` first",
+    )?;
 
     let server_directory = directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
@@ -53,7 +59,11 @@ fn main() -> anyhow::Result<()> {
 
     process_overrides(settings.clone(), server_directory.clone())?;
 
-    println!("{}Running server...{}", color::Fg(color::Green), style::Reset);
+    println!(
+        "{}Running server...{}",
+        color::Fg(color::Green),
+        style::Reset
+    );
     run_server(server_directory, server_jar, settings)?.wait()?;
     Ok(())
 }
