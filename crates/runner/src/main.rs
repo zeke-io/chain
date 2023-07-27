@@ -28,8 +28,10 @@ fn main() -> anyhow::Result<()> {
             ProjectSettings::default()
         }
     };
-    let version = project.get_manifest::<VersionManifest>()?;
-    let dependencies = project.get_manifest::<DependenciesManifest>()?;
+    let version = project.get_manifest::<VersionManifest>()
+        .context("Version manifest file was not found, make sure to run `chain install` first")?;
+    let dependencies = project.get_manifest::<DependenciesManifest>()
+        .context("Dependencies manifest file was not found, make sure to run `chain install` first")?;
 
     let server_directory = directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
