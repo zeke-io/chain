@@ -4,8 +4,14 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
+pub fn default_java() -> String {
+    "java".to_string()
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "kebab-case")]
 pub struct ProjectSettings {
+    #[serde(default = "default_java")]
     pub java_runtime: String,
     #[serde(default)]
     pub jvm_options: Vec<String>,
