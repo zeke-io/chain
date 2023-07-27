@@ -1,5 +1,5 @@
-use chain_core::project;
-use chain_core::project::metadata::ProjectMetadata;
+use chain::project;
+use chain::project::metadata::ProjectMetadata;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::fs::File;

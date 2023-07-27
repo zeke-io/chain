@@ -18,7 +18,7 @@ settings.dev.yml
 server/
 "#;
 
-    let mut file = File::create(path.join(".gitignore"))?;
+    let mut file = File::create(path.join("../../../../.gitignore"))?;
     file.write_all(content.as_bytes())?;
     Ok(())
 }

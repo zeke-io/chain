@@ -1,7 +1,7 @@
 use anyhow::{anyhow, Context};
-use chain_core::project;
-use chain_core::project::manifests::{DependenciesManifest, DependencyDetails, VersionManifest};
-use chain_core::project::settings::ProjectSettings;
+use chain::project;
+use chain::project::manifests::{DependenciesManifest, DependencyDetails, VersionManifest};
+use chain::project::settings::ProjectSettings;
 use clap::Parser;
 use std::collections::HashMap;
 use std::fs;

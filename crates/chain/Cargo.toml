@@ -1,5 +1,5 @@
 [package]
-name = "chain-cli"
+name = "chain"
 version = "0.1.0"
 edition.workspace = true
 publish.workspace = true
@@ -10,16 +10,18 @@ copyright = "2023 <ezequiel_io@pm.me>"
 
 [[bin]]
 name = "chain"
-path = "src/main.rs"
+path = "src/cli/main.rs"
 
 [dependencies]
 anyhow = "1.0.71"
 clap = { version = "4.3.4", features = ["derive"] }
-chain-core = { path = "../core" }
 ignore = "0.4.20"
 md5 = "0.7.0"
-serde = { version = "1.0", features = ["derive"] }
+reqwest = "0.11.18"
+serde = { version = "1", features = ["derive"] }
+serde_yaml = "0.9.25"
 termion = "2.0.1"
 tokio = { version = "1", features = ["full"] }
 toml = "0.7.6"
+url = "2.4.0"
 zip = "0.6.6"

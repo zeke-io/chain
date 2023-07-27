@@ -1,4 +1,4 @@
-use chain_core::project;
+use chain::project;
 use clap::Parser;
 use std::path::PathBuf;
 
