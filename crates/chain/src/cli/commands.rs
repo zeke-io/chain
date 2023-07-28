@@ -21,7 +21,5 @@ pub enum Commands {
     Pack {
         #[arg(long)]
         dev: bool,
-        #[arg(long)]
-        scripts: bool,
     },
 }
