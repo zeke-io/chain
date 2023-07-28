@@ -1,10 +1,9 @@
-use anyhow::Context;
-use chain::project::ProjectDetails;
 use inquire::{Confirm, Text};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+use termion::{color, style};
 
 pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<()> {
     let mut path: PathBuf;
@@ -36,24 +35,44 @@ pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<
 
     fs::create_dir_all(&path)?;
 
-    let project = ProjectDetails {
-        name: server_name,
-        server_jar,
-        dependencies: Default::default(),
-    };
-
-    generate_project_file(path.as_path(), project)?;
+    generate_project_file(path.as_path(), &server_name, &server_jar)?;
     generate_gitignore(path.as_path())?;
+
+    println!(
+        "{}Project files generated at \"{}\"!{}",
+        color::Fg(color::Green),
+        path.display(),
+        style::Reset
+    );
     Ok(())
 }
 
-fn generate_project_file(directory: &Path, project: ProjectDetails) -> anyhow::Result<()> {
-    let parsed = serde_yaml::to_string(&project)?;
-    fs::write(directory.join("chain.yml"), parsed).context("Could not create \"chain.yml\" file")
+fn generate_file(contents: &[u8], file_path: PathBuf) -> anyhow::Result<()> {
+    let mut file = File::create(file_path)?;
+    file.write_all(contents)?;
+    Ok(())
+}
+
+fn generate_project_file(
+    directory: &Path,
+    server_name: &str,
+    server_jar: &str,
+) -> anyhow::Result<()> {
+    let template = r#"# Server name
+name: {name}
+# Server jar
+server-jar: {jar}
+"#;
+
+    let contents = template
+        .replace("{name}", server_name)
+        .replace("{jar}", server_jar);
+
+    generate_file(contents.as_bytes(), directory.join("chain.yml"))
 }
 
 fn generate_gitignore(directory: &Path) -> anyhow::Result<()> {
-    let content = r#"### Chain
+    let contents = r#"### Chain
 .chain/
 
 # Settings
@@ -63,7 +82,5 @@ settings.dev.yml
 server/
 "#;
 
-    let mut file = File::create(directory.join(".gitignore"))?;
-    file.write_all(content.as_bytes())?;
-    Ok(())
+    generate_file(contents.as_bytes(), directory.join(".gitignore"))
 }
