@@ -144,7 +144,7 @@ pub fn prepare_dependencies(
     Ok(())
 }
 
-pub fn process_overrides<P: AsRef<Path>>(
+pub fn process_files<P: AsRef<Path>>(
     settings: ProjectSettings,
     server_directory: P,
 ) -> anyhow::Result<()> {
