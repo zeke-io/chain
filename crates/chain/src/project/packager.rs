@@ -13,10 +13,7 @@ use zip::ZipWriter;
 
 #[allow(unused_variables)]
 #[allow(unreachable_code)]
-pub fn pack_server<P: AsRef<Path>>(
-    root_directory: P,
-    is_dev: bool,
-) -> anyhow::Result<()> {
+pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::Result<()> {
     let root_directory = root_directory.as_ref();
     let out_directory = root_directory.join("out");
     let server_directory = out_directory.join("server");
@@ -56,20 +53,20 @@ pub fn pack_server<P: AsRef<Path>>(
 
     project::process_overrides(settings.clone(), &server_directory)?;
 
+    let server_jar = Path::new(&version.jar_file);
+    let server_jar_name: &str = Path::new(&version.jar_file)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or("server.jar");
+    fs::copy(server_jar, server_directory.join(server_jar_name))
+        .context("Could not copy server JAR file")?;
+
     println!(
         "{}Generating start scripts...{}",
         color::Fg(color::Blue),
         style::Reset,
     );
-    let server_jar: &str = Path::new(&version.jar_file)
-        .file_name()
-        .and_then(|name| name.to_str())
-        .unwrap();
-    generate_start_scripts(
-        server_directory.as_path(),
-        server_jar,
-        settings
-    )?;
+    generate_start_scripts(server_directory.as_path(), server_jar_name, settings)?;
 
     println!(
         "{}Generating ZIP file...{}",
@@ -87,8 +84,17 @@ pub fn pack_server<P: AsRef<Path>>(
     Ok(())
 }
 
-fn generate_start_scripts(server_directory: &Path, server_jar: &str, settings: ProjectSettings) -> anyhow::Result<()> {
-    fn inner(out_path: PathBuf, contents: &str, server_jar: &str, settings: &ProjectSettings) -> anyhow::Result<()> {
+fn generate_start_scripts(
+    server_directory: &Path,
+    server_jar: &str,
+    settings: ProjectSettings,
+) -> anyhow::Result<()> {
+    fn inner(
+        out_path: PathBuf,
+        contents: &str,
+        server_jar: &str,
+        settings: &ProjectSettings,
+    ) -> anyhow::Result<()> {
         let contents = contents
             .replace("{jvm_options}", &settings.jvm_options.join(" "))
             .replace("{server_jar}", server_jar)
@@ -110,8 +116,18 @@ java {jvm_options} -jar {server_jar} {server_args}
 java {jvm_options} -jar {server_jar} {server_args}
 "#;
 
-    inner(server_directory.join("start.sh"), bash_script, server_jar, &settings)?;
-    inner(server_directory.join("start.bat"), batch_script, server_jar, &settings)?;
+    inner(
+        server_directory.join("start.sh"),
+        bash_script,
+        server_jar,
+        &settings,
+    )?;
+    inner(
+        server_directory.join("start.bat"),
+        batch_script,
+        server_jar,
+        &settings,
+    )?;
     Ok(())
 }
 
