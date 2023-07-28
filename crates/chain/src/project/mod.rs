@@ -144,18 +144,18 @@ pub fn prepare_dependencies(
     Ok(())
 }
 
-pub fn process_overrides<P: AsRef<Path>>(
+pub fn process_files<P: AsRef<Path>>(
     settings: ProjectSettings,
     server_directory: P,
 ) -> anyhow::Result<()> {
     let server_directory = server_directory.as_ref();
-    for file_target in settings.overrides.keys() {
-        let value = settings.overrides.get(file_target).unwrap();
+    for file_target in settings.files.keys() {
+        let value = settings.files.get(file_target).unwrap();
         let source_file = Path::new(value);
 
         if !source_file.exists() {
             return Err(anyhow!(
-                "Override file \"{}\" does not exists",
+                "Source file \"{}\" does not exists",
                 source_file.display()
             ));
         }

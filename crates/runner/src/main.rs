@@ -59,7 +59,7 @@ fn main() -> anyhow::Result<()> {
             server_directory.join("plugins"),
         )?;
 
-        project::process_overrides(settings.clone(), server_directory.clone())?;
+        project::process_files(settings.clone(), server_directory.clone())?;
     } else {
         println!(
             "{}Skipping setup, this is only recommended when running the server for the first time...{}",

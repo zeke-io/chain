@@ -51,7 +51,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         server_directory.join("plugins"),
     )?;
 
-    project::process_overrides(settings.clone(), &server_directory)?;
+    project::process_files(settings.clone(), &server_directory)?;
 
     let server_jar = Path::new(&version.jar_file);
     let server_jar_name: &str = Path::new(&version.jar_file)

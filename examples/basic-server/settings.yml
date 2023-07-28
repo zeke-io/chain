@@ -1,5 +1,5 @@
 # This is the settings file, used when running the server with chainr,
-# Here you can define the jvm options, server args, and files to override.
+# Here you can define the jvm options, server args, and files to copy/override.
 # This file can also be duplicated as 'settings.dev.yml', and have different values,
 # Useful for values or files only meant for development
 
@@ -15,9 +15,9 @@ jvm-options:
 server-args:
   - "--nogui"
 
-# Here you can define the files to override when running the server,
+# Here you can define the files to copy/override when running the server,
 # Like server or plugin config files (Optional)
-overrides:
+files:
   # The key is a path to a file within the server directory,
   # And the value is a path to a file relative to the root directory (where the chain.yml file is located)
   'server.properties': "config/server.properties"

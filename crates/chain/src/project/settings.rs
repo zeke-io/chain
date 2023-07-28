@@ -18,7 +18,7 @@ pub struct ProjectSettings {
     #[serde(default)]
     pub server_args: Vec<String>,
     #[serde(default)]
-    pub overrides: HashMap<String, String>,
+    pub files: HashMap<String, String>,
 }
 
 impl Default for ProjectSettings {
@@ -27,7 +27,7 @@ impl Default for ProjectSettings {
             java_runtime: "java".to_string(),
             jvm_options: vec![],
             server_args: vec![],
-            overrides: Default::default(),
+            files: Default::default(),
         }
     }
 }
