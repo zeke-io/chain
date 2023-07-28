@@ -36,7 +36,7 @@ pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<
     fs::create_dir_all(&path)?;
 
     generate_project_file(path.as_path(), &server_name, &server_jar)?;
-    generate_gitignore(path.as_path())?;
+    generate_git_files(path.as_path())?;
 
     println!(
         "{}Project files generated at \"{}\"!{}",
@@ -71,8 +71,8 @@ server-jar: {jar}
     generate_file(contents.as_bytes(), directory.join("chain.yml"))
 }
 
-fn generate_gitignore(directory: &Path) -> anyhow::Result<()> {
-    let contents = r#"### Chain
+fn generate_git_files(directory: &Path) -> anyhow::Result<()> {
+    let git_ignore = r#"### Chain
 .chain/
 
 # Settings
@@ -83,5 +83,25 @@ server/
 out/
 "#;
 
-    generate_file(contents.as_bytes(), directory.join(".gitignore"))
+    let readme = r#"## Install
+```bash
+chain install
+```
+
+## Run the server (dev)
+```bash
+chainr --dev
+```
+
+## Pack the server
+```bash
+chain pack
+```
+
+Powered by [Chain](https://github.com/zeke-io/chain)
+"#;
+
+    generate_file(git_ignore.as_bytes(), directory.join(".gitignore"))?;
+    generate_file(readme.as_bytes(), directory.join("README.md"))?;
+    Ok(())
 }
