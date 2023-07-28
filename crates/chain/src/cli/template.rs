@@ -80,6 +80,7 @@ settings.dev.yml
 
 # Server
 server/
+out/
 "#;
 
     generate_file(contents.as_bytes(), directory.join(".gitignore"))

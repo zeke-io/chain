@@ -17,11 +17,9 @@ pub enum Commands {
         #[arg(short, long)]
         force: bool,
     },
-    // #[command(about = "Pack a server and its files")]
-    // Pack,
-    // #[command(about = "Unpack a server package")]
-    // Unpack {
-    //     #[arg(short, long)]
-    //     force: bool,
-    // },
+    #[command(about = "Pack a server and its files")]
+    Pack {
+        #[arg(long)]
+        dev: bool,
+    },
 }

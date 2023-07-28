@@ -6,3 +6,4 @@ settings.dev.yml
 
 # Server
 server/
+out/
