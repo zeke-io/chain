@@ -1,6 +1,6 @@
 mod installer;
 pub mod manifests;
-pub mod metadata;
+pub mod packager;
 pub mod settings;
 
 use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};

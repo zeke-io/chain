@@ -1,11 +1,10 @@
 use chain::project;
+use chain::project::packager;
 use clap::Parser;
-use std::path::PathBuf;
 
 use crate::commands::{Cli, Commands};
 
 mod commands;
-mod packager;
 mod template;
 
 #[tokio::main]
@@ -17,5 +16,6 @@ async fn main() -> anyhow::Result<()> {
     match cli.command {
         Commands::Init { path } => template::generate_template(path),
         Commands::Install { force } => project::install(current_directory, force).await,
+        Commands::Pack { dev, scripts } => packager::pack_server(current_directory, dev, scripts),
     }
 }
