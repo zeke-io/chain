@@ -1,10 +1,9 @@
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "chain")]
 pub struct Cli {
-    pub path: Option<String>,
-
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -12,7 +11,7 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     #[command(about = "Initializes a project with a basic template")]
-    Init,
+    Init { path: Option<PathBuf> },
     #[command(about = "Installs the files and plugins")]
     Install {
         #[arg(short, long)]
