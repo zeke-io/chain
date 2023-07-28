@@ -155,7 +155,7 @@ pub fn process_files<P: AsRef<Path>>(
 
         if !source_file.exists() {
             return Err(anyhow!(
-                "Override file \"{}\" does not exists",
+                "Source file \"{}\" does not exists",
                 source_file.display()
             ));
         }
