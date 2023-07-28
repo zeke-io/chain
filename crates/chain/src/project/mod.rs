@@ -149,8 +149,8 @@ pub fn process_overrides<P: AsRef<Path>>(
     server_directory: P,
 ) -> anyhow::Result<()> {
     let server_directory = server_directory.as_ref();
-    for file_target in settings.overrides.keys() {
-        let value = settings.overrides.get(file_target).unwrap();
+    for file_target in settings.files.keys() {
+        let value = settings.files.get(file_target).unwrap();
         let source_file = Path::new(value);
 
         if !source_file.exists() {
