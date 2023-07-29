@@ -1,3 +1,4 @@
+use crate::logger;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -53,7 +54,10 @@ pub(crate) fn load_settings<P: AsRef<Path>>(
     if is_dev {
         match inner(path.join("settings.dev.yml")) {
             Ok(settings) => return Ok(settings),
-            Err(err) => eprintln!("{}\nAttempting to load \"settings.yml\" file...", err),
+            Err(err) => logger::warn(&format!(
+                "{}\nAttempting to load \"settings.yml\" file...",
+                err
+            )),
         }
     }
 

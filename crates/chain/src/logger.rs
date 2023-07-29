@@ -1,15 +1,10 @@
-use termion::{color, style};
 use termion::color::Color;
+use termion::{color, style};
 
 // Ugly logging implementation, will do for now
 
 fn inner_log<C: Color>(color: C, text: &str) {
-    println!(
-        "{}{}{}",
-        color::Fg(color),
-        text,
-        style::Reset
-    );
+    println!("{}{}{}", color::Fg(color), text, style::Reset);
 }
 
 pub fn info(text: &str) {
