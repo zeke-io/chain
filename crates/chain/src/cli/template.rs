@@ -24,7 +24,7 @@ pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<
         .prompt()?;
 
     let create_directory = Confirm::new("Create a separate directory?")
-        .with_placeholder("Yes|no")
+        .with_placeholder("'Y' for yes, 'n' for no")
         .prompt()?;
 
     if create_directory {

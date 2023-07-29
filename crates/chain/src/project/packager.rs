@@ -59,7 +59,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         settings,
     )?;
 
-    logger::info("Generating ZIP file...");
+    logger::info("Generating ZIP file, this might take a while...");
     create_zip(out_directory.join("server.zip"), server_directory.as_path())?;
 
     logger::success(&format!(
