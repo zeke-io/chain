@@ -1,24 +1,32 @@
-use termion::color::Color;
-use termion::{color, style};
+use crossterm::execute;
+use crossterm::style::{Color, Print, ResetColor, SetForegroundColor};
+use std::io::stdout;
 
-// Ugly logging implementation, will do for now
+// Ugly and rushed logging implementation, will do for now
+// TODO: Refactor?
 
-fn inner_log<C: Color>(color: C, text: &str) {
-    println!("{}{}{}", color::Fg(color), text, style::Reset);
+fn inner_log(color: Color, text: &str) {
+    let _ = execute!(
+        stdout(),
+        SetForegroundColor(color),
+        Print(text),
+        Print("\n"),
+        ResetColor
+    );
 }
 
 pub fn info(text: &str) {
-    inner_log(color::Blue, text)
+    inner_log(Color::Blue, text)
 }
 
 pub fn success(text: &str) {
-    inner_log(color::Green, text)
+    inner_log(Color::Green, text)
 }
 
 pub fn warn(text: &str) {
-    inner_log(color::Yellow, text)
+    inner_log(Color::Yellow, text)
 }
 
 pub fn error(text: &str) {
-    inner_log(color::Red, text)
+    inner_log(Color::Red, text)
 }
