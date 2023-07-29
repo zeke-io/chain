@@ -1,9 +1,9 @@
+use chain::logger;
 use inquire::{Confirm, Text};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use termion::{color, style};
 
 pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<()> {
     let mut path: PathBuf;
@@ -24,7 +24,7 @@ pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<
         .prompt()?;
 
     let create_directory = Confirm::new("Create a separate directory?")
-        .with_placeholder("Yes|no")
+        .with_placeholder("'Y' for yes, 'n' for no")
         .prompt()?;
 
     if create_directory {
@@ -38,12 +38,10 @@ pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<
     generate_project_file(path.as_path(), &server_name, &server_jar)?;
     generate_git_files(path.as_path())?;
 
-    println!(
-        "{}Project files generated at \"{}\"!{}",
-        color::Fg(color::Green),
-        path.display(),
-        style::Reset
-    );
+    logger::success(&format!(
+        "Project files generated at \"{}\"!",
+        path.display()
+    ));
     Ok(())
 }
 

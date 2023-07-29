@@ -1,12 +1,11 @@
 use anyhow::Context;
-use chain::project;
 use chain::project::manifests::{DependenciesManifest, VersionManifest};
 use chain::project::settings::ProjectSettings;
+use chain::{logger, project};
 use clap::Parser;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
-use termion::{color, style};
 
 #[derive(Parser, Debug)]
 #[command(name = "chainr")]
@@ -25,11 +24,7 @@ fn main() -> anyhow::Result<()> {
     let settings = match project.get_settings(args.dev) {
         Ok(settings) => settings,
         Err(_) => {
-            println!(
-                "{}No settings file was provided, using default values...{}",
-                color::Fg(color::Yellow),
-                style::Reset
-            );
+            logger::warn("No settings file was provided, using default values...");
             ProjectSettings::default()
         }
     };
@@ -61,18 +56,10 @@ fn main() -> anyhow::Result<()> {
 
         project::process_files(settings.clone(), server_directory.clone())?;
     } else {
-        println!(
-            "{}Skipping setup, this is only recommended when running the server for the first time...{}",
-            color::Fg(color::Yellow),
-            style::Reset
-        );
+        logger::warn("Skipping setup, this is only recommended when running the server for the first time...");
     }
 
-    println!(
-        "{}Running server...{}",
-        color::Fg(color::Green),
-        style::Reset
-    );
+    logger::info("Running server...");
     run_server(server_directory, server_jar, settings)?.wait()?;
     Ok(())
 }

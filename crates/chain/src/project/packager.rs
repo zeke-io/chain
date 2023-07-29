@@ -1,12 +1,11 @@
-use crate::project;
 use crate::project::manifests::{DependenciesManifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
+use crate::{logger, project};
 use anyhow::Context;
 use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
-use termion::{color, style};
 use walkdir::WalkDir;
 use zip::write::FileOptions;
 use zip::ZipWriter;
@@ -22,11 +21,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     let settings = match project.get_settings(is_dev) {
         Ok(settings) => settings,
         Err(_) => {
-            println!(
-                "{}No settings file was provided, using default values...{}",
-                color::Fg(color::Yellow),
-                style::Reset
-            );
+            logger::warn("No settings file was found, using default values...");
             ProjectSettings::default()
         }
     };
@@ -37,12 +32,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         "Dependencies manifest file was not found, make sure to run `chain install` first",
     )?;
 
-    println!(
-        "{}Preparing server files...{}",
-        color::Fg(color::Blue),
-        style::Reset,
-    );
-
+    logger::info("Preparing server files...");
     fs::create_dir_all(&server_directory)?;
 
     project::prepare_dependencies(
@@ -61,11 +51,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     fs::copy(server_jar, server_directory.join(server_jar_name))
         .context("Could not copy server JAR file")?;
 
-    println!(
-        "{}Generating start scripts...{}",
-        color::Fg(color::Blue),
-        style::Reset,
-    );
+    logger::info("Generating start scripts...");
     generate_start_scripts(
         server_directory.as_path(),
         &settings.java_runtime.clone(),
@@ -73,19 +59,13 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         settings,
     )?;
 
-    println!(
-        "{}Generating ZIP file...{}",
-        color::Fg(color::Blue),
-        style::Reset,
-    );
+    logger::info("Generating ZIP file, this might take a while...");
     create_zip(out_directory.join("server.zip"), server_directory.as_path())?;
 
-    println!(
-        "{}Server ZIP file has been generated at \"{}\"!{}",
-        color::Fg(color::Green),
-        out_directory.join("server.zip").display(),
-        style::Reset,
-    );
+    logger::success(&format!(
+        "Server ZIP file has been generated at \"{}\"!",
+        out_directory.join("server.zip").display()
+    ));
     Ok(())
 }
 

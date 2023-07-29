@@ -1,5 +1,5 @@
 use crate::project::manifests::DependencyDetails;
-use crate::util;
+use crate::{logger, util};
 use anyhow::{anyhow, Context};
 use std::collections::HashMap;
 use std::fs;
@@ -13,14 +13,14 @@ pub(crate) async fn download_server(
     fs::create_dir_all(&target_directory)?;
 
     if util::url::is_url(source) {
-        println!(
+        logger::info(&format!(
             "Downloading server JAR file \"{}\"...",
             util::url::get_filename_from_url(source)
-        );
+        ));
 
         path = util::url::download_file(source.into(), target_directory).await?;
     } else {
-        println!("Installing server JAR from \"{}\"...", source);
+        logger::info(&format!("Installing server JAR from \"{}\"...", source));
 
         let source_path = PathBuf::from(source);
         let file_name = Path::new(&source_path)
@@ -45,11 +45,11 @@ pub(crate) async fn download_plugins(
     let mut installed_dependencies: HashMap<String, DependencyDetails> = HashMap::new();
     for (id, source) in dependencies {
         if util::url::is_url(source) {
-            println!(
+            logger::info(&format!(
                 "Downloading \"{}\" from \"{}\"...",
                 util::url::get_filename_from_url(source),
                 source
-            );
+            ));
 
             let path = util::url::download_file(source.clone(), target_directory.clone()).await?;
 
@@ -62,7 +62,7 @@ pub(crate) async fn download_plugins(
             );
             continue;
         } else {
-            println!("Installing \"{}\" from \"{}\"...", id, source);
+            logger::info(&format!("Installing \"{}\" from \"{}\"...", id, source));
             let source = PathBuf::from(source);
             let fallback_name = format!("{}.jar", id);
             let file_name = Path::new(&source)
