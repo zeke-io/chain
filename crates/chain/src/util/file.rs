@@ -22,3 +22,20 @@ pub fn append_or_check_file<P: AsRef<Path>>(path: P, file_name: &str) -> Option<
 
     Some(path_buf)
 }
+
+pub fn find_up_file(path: &Path, file_name: &str) -> Option<PathBuf> {
+    let mut path: PathBuf = path.into();
+    let file = Path::new(file_name);
+
+    loop {
+        path.push(file);
+
+        if path.is_file() {
+            break Some(path);
+        }
+
+        if !(path.pop() && path.pop()) {
+            break None;
+        }
+    }
+}

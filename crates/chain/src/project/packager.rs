@@ -18,6 +18,8 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     let server_directory = out_directory.join("server");
 
     let project = project::load_project(root_directory)?;
+    let project_directory = &project.root_directory;
+
     let settings = match project.get_settings(is_dev) {
         Ok(settings) => settings,
         Err(_) => {
@@ -41,7 +43,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         server_directory.join("plugins"),
     )?;
 
-    project::process_files(settings.clone(), &server_directory)?;
+    project::process_files(project_directory, &server_directory, settings.clone())?;
 
     let server_jar = Path::new(&version.jar_file);
     let server_jar_name: &str = Path::new(&version.jar_file)
