@@ -12,6 +12,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
@@ -149,29 +150,54 @@ pub fn process_files<P: AsRef<Path>>(
     server_directory: P,
 ) -> anyhow::Result<()> {
     let server_directory = server_directory.as_ref();
-    for file_target in settings.files.keys() {
-        let value = settings.files.get(file_target).unwrap();
-        let source_file = Path::new(value);
 
-        if !source_file.exists() {
+    for (target_path, source_path) in settings.files {
+        let source_path = Path::new(&source_path);
+        let target_path = server_directory.join(target_path);
+
+        if !source_path.exists() {
             return Err(anyhow!(
-                "Source file \"{}\" does not exists",
-                source_file.display()
+                "Source path \"{}\" does not exists",
+                source_path.display()
             ));
         }
 
-        let file_target = server_directory.join(file_target);
+        if source_path.is_file() {
+            fs::create_dir_all(&target_path.parent().unwrap()).with_context(|| {
+                format!("Could not create folders \"{}\"", target_path.display())
+            })?;
 
-        fs::create_dir_all(file_target.parent().unwrap())
-            .with_context(|| format!("Could not create file \"{}\".", file_target.display()))?;
+            fs::copy(&source_path, &target_path).with_context(|| {
+                format!(
+                    "Could not copy file \"{}\" to \"{}\"",
+                    source_path.display(),
+                    target_path.display()
+                )
+            })?;
+        } else {
+            if !target_path.exists() {
+                fs::create_dir_all(&target_path)?;
+            }
 
-        fs::copy(&source_file, &file_target).with_context(|| {
-            format!(
-                "Could not copy file \"{}\" to \"{}\".",
-                source_file.display(),
-                file_target.display()
-            )
-        })?;
+            for entry in WalkDir::new(source_path).into_iter().filter_map(Result::ok) {
+                let source = entry.path();
+                let relative_path = source.strip_prefix(source_path)?;
+                let destination = target_path.join(relative_path);
+
+                if source.is_file() {
+                    fs::copy(&source, &destination).context(format!(
+                        "Could not copy file \"{}\" to \"{}\"",
+                        source.display(),
+                        destination.display()
+                    ))?;
+                } else {
+                    fs::create_dir_all(&destination).context(format!(
+                        "Could not create directory \"{}\"",
+                        destination.display()
+                    ))?;
+                }
+            }
+        }
     }
 
     Ok(())

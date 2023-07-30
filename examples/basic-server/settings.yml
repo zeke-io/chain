@@ -15,9 +15,9 @@ jvm-options:
 server-args:
   - "--nogui"
 
-# Here you can define the files to copy/override when running the server,
+# Here you can define the files/folders to copy/override when running the server,
 # Like server or plugin config files (Optional)
 files:
-  # The key is a path to a file within the server directory,
-  # And the value is a path to a file relative to the root directory (where the chain.yml file is located)
+  # The key is a path to a file/folder within the server directory,
+  # And the value is a path to a file/folder relative to the root directory (where the chain.yml file is located)
   'server.properties': "config/server.properties"

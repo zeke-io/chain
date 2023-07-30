@@ -81,8 +81,8 @@ Here is an explanation of all the properties:
     An array of arguments that will be passed to the server jar.
 - #### `files`
     A key/value map that defines what server files to create/override.
-    Both key and value are paths,the key *(target)* is a path within the server directory of the file you want to replace,
-    and the value *(source)* is a path relative to the root directory of the file you want to replace it with.
+    Both key and value are paths,the key *(target)* is a path within the server directory of the file/folder you want to replace,
+    and the value *(source)* is a path relative to the root directory of the file/folder you want to replace it with.
 
     **If the target file does not exist, it will be copied, if it exists, it will be replaced.**
 
