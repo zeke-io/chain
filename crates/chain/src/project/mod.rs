@@ -7,6 +7,7 @@ use crate::project::manifests::{
     DependenciesManifest, DependencyDetails, Manifest, VersionManifest,
 };
 use crate::project::settings::ProjectSettings;
+use crate::util;
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -41,18 +42,20 @@ impl Project {
     }
 
     pub fn get_manifest<T: Manifest>(&self) -> anyhow::Result<T::ManifestType> {
-        let manifest = T::load_manifest(&self.root_directory).unwrap();
-        Ok(manifest)
+        T::load_manifest(&self.root_directory)
     }
 }
 
 pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = path.as_ref();
 
-    let details_file = fs::read_to_string(path.join("chain.yml"))
+    let chain_file = util::file::find_up_file(path, "chain.yml")
         .context("Could not find \"chain.yml\" file, please create one")?;
+    let path = chain_file.parent().unwrap();
+
+    let details_file = fs::read_to_string(&chain_file)?;
     let details: ProjectDetails = serde_yaml::from_str(&details_file)
-        .with_context(|| "The project file \"chain.yml\" is invalid.")?;
+        .with_context(|| "The file \"chain.yml\" is invalid.")?;
 
     let project = Project::new(path, details);
 
@@ -146,19 +149,20 @@ pub fn prepare_dependencies(
 }
 
 pub fn process_files<P: AsRef<Path>>(
-    settings: ProjectSettings,
+    root_directory: &PathBuf,
     server_directory: P,
+    settings: ProjectSettings,
 ) -> anyhow::Result<()> {
     let server_directory = server_directory.as_ref();
 
     for (target_path, source_path) in settings.files {
-        let source_path = Path::new(&source_path);
+        let source_path = root_directory.join(&source_path);
         let target_path = server_directory.join(target_path);
 
         if !source_path.exists() {
             return Err(anyhow!(
                 "Source path \"{}\" does not exists",
-                source_path.display()
+                source_path.display(),
             ));
         }
 
@@ -179,9 +183,12 @@ pub fn process_files<P: AsRef<Path>>(
                 fs::create_dir_all(&target_path)?;
             }
 
-            for entry in WalkDir::new(source_path).into_iter().filter_map(Result::ok) {
+            for entry in WalkDir::new(&source_path)
+                .into_iter()
+                .filter_map(Result::ok)
+            {
                 let source = entry.path();
-                let relative_path = source.strip_prefix(source_path)?;
+                let relative_path = source.strip_prefix(&source_path)?;
                 let destination = target_path.join(relative_path);
 
                 if source.is_file() {

@@ -21,6 +21,8 @@ fn main() -> anyhow::Result<()> {
     let directory = std::env::current_dir()?;
 
     let project = project::load_project(&directory)?;
+    let project_directory = &project.root_directory;
+
     let settings = match project.get_settings(args.dev) {
         Ok(settings) => settings,
         Err(_) => {
@@ -35,13 +37,11 @@ fn main() -> anyhow::Result<()> {
         "Dependencies manifest file was not found, make sure to run `chain install` first",
     )?;
 
-    let server_jar = PathBuf::from(version.jar_file);
-
-    let server_directory = directory.join("server");
+    let server_directory = project_directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
         fs::create_dir_all(&server_directory).with_context(|| {
             format!(
-                "Could not create server directory \"{}\"",
+                "Could not create server directory at \"{}\"",
                 server_directory.display()
             )
         })?;
@@ -54,10 +54,16 @@ fn main() -> anyhow::Result<()> {
             server_directory.join("plugins"),
         )?;
 
-        project::process_files(settings.clone(), server_directory.clone())?;
+        project::process_files(
+            project_directory,
+            server_directory.clone(),
+            settings.clone(),
+        )?;
     } else {
         logger::warn("Skipping setup, this is only recommended when running the server for the first time...");
     }
+
+    let server_jar = PathBuf::from(version.jar_file);
 
     logger::info("Running server...");
     run_server(server_directory, server_jar, settings)?.wait()?;
