@@ -1,3 +1,5 @@
+use std::fs::File;
+use std::io::Read;
 use std::path::{Path, PathBuf};
 
 pub fn append_or_check_file<P: AsRef<Path>>(path: P, file_name: &str) -> Option<PathBuf> {
@@ -38,4 +40,20 @@ pub fn find_up_file(path: &Path, file_name: &str) -> Option<PathBuf> {
             break None;
         }
     }
+}
+
+/// Hacky way to know if a file is a binary (might not be accurate)
+pub fn is_binary<P: AsRef<Path>>(path: P) -> anyhow::Result<bool> {
+    const BYTES_TO_CHECK: usize = 256;
+    let mut buffer = [0; BYTES_TO_CHECK];
+    let mut file = File::open(path)?;
+
+    let num_bytes = file.read(&mut buffer)?;
+    for &byte in buffer[..num_bytes].iter() {
+        if byte == 0 {
+            return Ok(true);
+        }
+    }
+
+    Ok(false)
 }
