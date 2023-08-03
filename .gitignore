@@ -1,2 +1,12 @@
+# Rust
 /target
+
+# Editors
 .idea
+.vscode
+
+# Examples
+examples/**/.chain
+examples/**/settings.dev.yml
+examples/**/server
+examples/**/out
