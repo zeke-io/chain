@@ -220,6 +220,7 @@ dependencies = [
  "ignore",
  "inquire",
  "md5",
+ "regex",
  "reqwest",
  "serde",
  "serde_yaml",
