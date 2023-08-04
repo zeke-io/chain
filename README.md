@@ -2,9 +2,23 @@
 
 **Make your minecraft servers VCS friendly!**
 
+## Features
+
+- Automatic server/plugins download
+- Override/copy files per environment
+- Server arguments and JVM options per environment
+- Server packaging (with bash and batch start scripts)
+- Support for environment variables
+
+## Installation
+
+Follow the [Installation Guide](/docs/installation.md) to know how to install Chain.  
+
 ## Getting Started
 
-Check out the [Quick Start Guide](/docs/quick-start.md) to know how to use Chain.
+Check out the [Quick Start Guide](/docs/quick-start.md) for a quick tutorial on how to use Chain.
+
+You can also check out the examples folder, each example has a readme with a guide on how to set them up.
 
 ## Contributing
 
