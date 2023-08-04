@@ -11,8 +11,8 @@ use crate::util;
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::fs;
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 use walkdir::WalkDir;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -153,9 +153,45 @@ pub fn process_files<P: AsRef<Path>>(
     server_directory: P,
     settings: ProjectSettings,
 ) -> anyhow::Result<()> {
+    fn inner_file_processor(settings: ProjectSettings, source_path: &PathBuf, target_path: &PathBuf) -> anyhow::Result<()> {
+        // If the file is (most likely) a binary, just copy it
+        if util::file::is_binary(source_path)? {
+            fs::copy(source_path, target_path).with_context(|| {
+                format!(
+                    "Could not copy file \"{}\" to \"{}\"",
+                    source_path.display(),
+                    target_path.display()
+                )
+            })?;
+            return Ok(());
+        }
+
+        let input = fs::read_to_string(source_path)?;
+        let reg_exp = regex::Regex::new(r"\$(CHAIN_[A-Z_0-9]*)")?;
+        let output = reg_exp.replace_all(&input, |caps: &regex::Captures<'_>| {
+            let var_name = &caps[1];
+
+            let var_value = match env::var(var_name) {
+                Ok(value) => value,
+                Err(_) => {
+                    // If the env var was not provided, find it in the settings file
+                    match settings.env.get(var_name) {
+                        Some(value) => value.clone(),
+                        None => "".to_string()
+                    }
+                },
+            };
+
+            var_value
+        });
+
+        fs::write(target_path, output.as_bytes())?;
+        Ok(())
+    }
+
     let server_directory = server_directory.as_ref();
 
-    for (target_path, source_path) in settings.files {
+    for (target_path, source_path) in &settings.files {
         let source_path = root_directory.join(&source_path);
         let target_path = server_directory.join(target_path);
 
@@ -171,13 +207,7 @@ pub fn process_files<P: AsRef<Path>>(
                 format!("Could not create folders \"{}\"", target_path.display())
             })?;
 
-            fs::copy(&source_path, &target_path).with_context(|| {
-                format!(
-                    "Could not copy file \"{}\" to \"{}\"",
-                    source_path.display(),
-                    target_path.display()
-                )
-            })?;
+            inner_file_processor(settings.clone(), &source_path, &target_path)?;
         } else {
             if !target_path.exists() {
                 fs::create_dir_all(&target_path)?;
@@ -192,11 +222,7 @@ pub fn process_files<P: AsRef<Path>>(
                 let destination = target_path.join(relative_path);
 
                 if source.is_file() {
-                    fs::copy(&source, &destination).context(format!(
-                        "Could not copy file \"{}\" to \"{}\"",
-                        source.display(),
-                        destination.display()
-                    ))?;
+                    inner_file_processor(settings.clone(), &source.to_path_buf(), &destination)?;
                 } else {
                     fs::create_dir_all(&destination).context(format!(
                         "Could not create directory \"{}\"",
