@@ -1,0 +1,3 @@
+name: with-environment-variables
+# Using Velocity
+server-jar: https://api.papermc.io/v2/projects/velocity/versions/3.2.0-SNAPSHOT/builds/260/downloads/velocity-3.2.0-SNAPSHOT-260.jar
