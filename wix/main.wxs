@@ -60,7 +60,7 @@
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
 
     <Product
-        Id='*'
+        Id='FF60BF29-2EAE-4670-BF12-735BA7CD24F4'
         Name='Chain'
         UpgradeCode='9FC8122B-AD8A-4B9A-A29A-763FE371E404'
         Manufacturer='Zeke'
