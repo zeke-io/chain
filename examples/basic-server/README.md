@@ -23,5 +23,7 @@ chain install
 You can run the server using the development settings `settings.dev.yml` with:
 
 ```bash
-chainr --dev
+chain run
 ```
+
+If you don't want to load the development settings, you can add the `--prod` argument. 

@@ -1,4 +1,4 @@
-# This is the settings file, used when running the server with chainr,
+# This is the settings file, used when running the server with `chain run`,
 # Here you can define the jvm options, server args, and files to copy/override.
 # This file can also be duplicated as 'settings.dev.yml', and have different values,
 # Useful for values or files only meant for development

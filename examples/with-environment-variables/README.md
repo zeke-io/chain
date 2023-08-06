@@ -16,7 +16,7 @@ When running or packaging the server, these "placeholders" will be replaced by t
 You can provide these values from the terminal:
 
 ```bash
-CHAIN_HOST=127.0.0.1 CHAIN_PORT=25565 CHAIN_FORWARDING_SECRET=MySecret chainr --dev
+CHAIN_HOST=127.0.0.1 CHAIN_PORT=25565 CHAIN_FORWARDING_SECRET=MySecret chain run
 # Or
 CHAIN_HOST=127.0.0.1 CHAIN_PORT=25565 CHAIN_FORWARDING_SECRET=MySecret chain pack
 ```
@@ -44,5 +44,7 @@ chain install
 You can run the server using the development settings `settings.dev.yml` with:
 
 ```bash
-chainr --dev
+chain run
 ```
+
+If you don't want to load the development settings, you can add the `--prod` argument.

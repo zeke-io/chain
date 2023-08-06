@@ -25,7 +25,7 @@ chain install
 Once it is done, it is recommended to run the server once to generate its files:
 
 ```bash
-chainr --no-setup
+chain run --no-setup
 ```
 
 *The `--no-setup` argument skips setup, only recommended when running the server for the first time to generate files.*
@@ -91,11 +91,13 @@ this allows developers/admins to have different settings without having to modif
 
 This is also useful if you have different config files for both production and development, as you can change the files in the `settings.dev.yml` file.
 
-When running the server, add the `--dev` argument to `chainr` so it tries to load the `settings.dev.yml` file (if it exists):
+To run the server with your development settings, use:
 
 ```bash
-chainr --dev
+chain run
 ```
+
+If the settings file `settings.dev.yml` does not exists, it will load the default `settings.yml` file.
 
 ## Pack the server
 

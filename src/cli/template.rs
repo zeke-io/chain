@@ -88,7 +88,7 @@ chain install
 
 ## Run the server (dev)
 ```bash
-chainr --dev
+chain run
 ```
 
 ## Pack the server
