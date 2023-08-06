@@ -12,7 +12,9 @@
 
 ## Installation
 
-Follow the [Installation Guide](/docs/installation.md) to know how to install Chain.  
+You can find available installers in [Releases](https://github.com/zeke-io/chain/releases).
+
+Follow the [Installation Guide](/docs/installation.md) for manual installation from source.  
 
 ## Getting Started
 
