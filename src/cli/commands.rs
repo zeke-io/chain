@@ -21,6 +21,8 @@ pub enum Commands {
     Run {
         #[arg(short, long)]
         prod: bool,
+        #[arg(long)]
+        no_setup: bool,
     },
     #[command(about = "Pack the server and its files")]
     Pack {
