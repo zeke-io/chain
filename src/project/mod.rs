@@ -7,12 +7,14 @@ use crate::project::manifests::{
     DependenciesManifest, DependencyDetails, Manifest, VersionManifest,
 };
 use crate::project::settings::ProjectSettings;
-use crate::util;
+use crate::{logger, util};
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
+use std::process::Stdio;
 use std::{env, fs};
+use tokio::process::Command;
 use walkdir::WalkDir;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -153,7 +155,11 @@ pub fn process_files<P: AsRef<Path>>(
     server_directory: P,
     settings: ProjectSettings,
 ) -> anyhow::Result<()> {
-    fn inner_file_processor(settings: ProjectSettings, source_path: &PathBuf, target_path: &PathBuf) -> anyhow::Result<()> {
+    fn inner_file_processor(
+        settings: ProjectSettings,
+        source_path: &PathBuf,
+        target_path: &PathBuf,
+    ) -> anyhow::Result<()> {
         // If the file is (most likely) a binary, just copy it
         if util::file::is_binary(source_path)? {
             fs::copy(source_path, target_path).with_context(|| {
@@ -177,9 +183,9 @@ pub fn process_files<P: AsRef<Path>>(
                     // If the env var was not provided, find it in the settings file
                     match settings.env.get(var_name) {
                         Some(value) => value.clone(),
-                        None => "".to_string()
+                        None => "".to_string(),
                     }
-                },
+                }
             };
 
             var_value
@@ -232,6 +238,85 @@ pub fn process_files<P: AsRef<Path>>(
             }
         }
     }
+
+    Ok(())
+}
+
+/// Prepares the server files and runs the server jar
+pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow::Result<()> {
+    let project = load_project(root_directory)?;
+    let project_directory = &project.root_directory;
+
+    let settings = match project.get_settings(!prod) {
+        Ok(settings) => settings,
+        Err(_) => {
+            logger::warn("No settings file was found, using default values...");
+            ProjectSettings::default()
+        }
+    };
+    let version = project
+        .get_manifest::<VersionManifest>()
+        .context("Version manifest file was not found, make sure to run `chain install` first")?;
+    let dependencies = project.get_manifest::<DependenciesManifest>().context(
+        "Dependencies manifest file was not found, make sure to run `chain install` first",
+    )?;
+
+    let server_directory = project_directory.join("server");
+    if !server_directory.exists() || !server_directory.is_dir() {
+        fs::create_dir_all(&server_directory).with_context(|| {
+            format!(
+                "Could not create server directory at \"{}\"",
+                server_directory.display()
+            )
+        })?;
+    }
+
+    if !no_setup {
+        prepare_dependencies(
+            dependencies.dependencies,
+            project.project_details.dependencies,
+            server_directory.join("plugins"),
+        )?;
+
+        process_files(
+            project_directory,
+            server_directory.clone(),
+            settings.clone(),
+        )?;
+    } else {
+        logger::warn("Skipping setup, this is only recommended when running the server for the first time...");
+    }
+
+    let server_jar = PathBuf::from(version.jar_file);
+
+    logger::info("Running server...");
+
+    let mut command = Command::new(settings.java_runtime);
+    command.current_dir(server_directory);
+
+    for arg in settings.jvm_options {
+        command.arg(arg);
+    }
+
+    command.arg("-jar");
+    command.arg(server_jar);
+
+    for arg in settings.server_args {
+        command.arg(arg);
+    }
+
+    let mut child = command
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .stderr(Stdio::inherit())
+        .spawn()?;
+
+    let _ = tokio::signal::ctrl_c().await;
+    child.kill().await.expect("Failed to kill child process");
+    child
+        .wait()
+        .await
+        .expect("Failed to wait for child process");
 
     Ok(())
 }

@@ -10,14 +10,21 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    #[command(about = "Initializes a project with a basic template")]
+    #[command(about = "Initialize a project with a basic template")]
     Init { path: Option<PathBuf> },
-    #[command(about = "Installs the files and plugins")]
+    #[command(about = "Install the files and plugins for a project")]
     Install {
         #[arg(short, long)]
         force: bool,
     },
-    #[command(about = "Pack a server and its files")]
+    #[command(about = "Run the server project")]
+    Run {
+        #[arg(short, long)]
+        prod: bool,
+        #[arg(long)]
+        no_setup: bool,
+    },
+    #[command(about = "Pack the server and its files")]
     Pack {
         #[arg(long)]
         dev: bool,
