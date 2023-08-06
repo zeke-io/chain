@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "chain")]
+#[command(name = "chain", bin_name = "chain", author, version, about)]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
