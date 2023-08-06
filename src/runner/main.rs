@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
 
 #[derive(Parser, Debug)]
-#[command(name = "chainr")]
+#[command(name = "chainr", bin_name = "chainr", author, version)]
 struct Args {
     #[arg(short, long)]
     dev: bool,
