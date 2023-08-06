@@ -223,23 +223,13 @@ dependencies = [
  "regex",
  "reqwest",
  "serde",
+ "serde_json",
  "serde_yaml",
  "tokio",
  "toml",
  "url",
  "walkdir",
  "zip",
-]
-
-[[package]]
-name = "chain-runner"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chain",
- "clap",
- "serde",
- "serde_json",
 ]
 
 [[package]]
