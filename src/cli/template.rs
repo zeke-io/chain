@@ -52,16 +52,30 @@ fn generate_project_file(
     server_name: &str,
     server_jar: &str,
 ) -> anyhow::Result<()> {
-    let template = r#"name: {name}
+    let chain = r#"name: {name}
 
 server-jar: {jar}
-"#;
+"#
+    .replace("{name}", server_name)
+    .replace("{jar}", server_jar);
 
-    let contents = template
-        .replace("{name}", server_name)
-        .replace("{jar}", server_jar);
+    let settings = r#"java-runtime: java
 
-    generate_file(contents.as_bytes(), directory.join("chain.yml"))
+jvm-options:
+  - "-Dfile.encoding=UTF-8"
+  - "-Xmx4G"
+
+server-args:
+  - "--nogui"
+
+env:
+  CHAIN_SERVER_NAME: {name}
+"#
+    .replace("{name}", server_name);
+
+    generate_file(chain.as_bytes(), directory.join("chain.yml"))?;
+    generate_file(settings.as_bytes(), directory.join("settings.yml"))?;
+    Ok(())
 }
 
 fn generate_git_files(directory: &Path) -> anyhow::Result<()> {
