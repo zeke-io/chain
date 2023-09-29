@@ -94,6 +94,10 @@ pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()
     Ok(())
 }
 
+pub async fn add_dependency(directory: PathBuf, dependency_id: String) -> anyhow::Result<()> {
+    todo!()
+}
+
 pub fn prepare_dependencies(
     cached_dependencies: HashMap<String, DependencyDetails>,
     dependencies: HashMap<String, String>,
