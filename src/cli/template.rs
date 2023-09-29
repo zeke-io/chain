@@ -94,7 +94,7 @@ chain pack
 Powered by [Chain](https://github.com/zeke-io/chain)
 "#;
 
-    generate_file(git_ignore.as_bytes(), directory.join("../../.gitignore"))?;
-    generate_file(readme.as_bytes(), directory.join("../../README.md"))?;
+    generate_file(git_ignore.as_bytes(), directory.join(".gitignore"))?;
+    generate_file(readme.as_bytes(), directory.join("README.md"))?;
     Ok(())
 }
