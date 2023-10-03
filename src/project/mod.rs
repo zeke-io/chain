@@ -151,7 +151,7 @@ pub fn prepare_dependencies(
 }
 
 pub fn process_files<P: AsRef<Path>>(
-    root_directory: &PathBuf,
+    root_directory: &Path,
     server_directory: P,
     settings: ProjectSettings,
 ) -> anyhow::Result<()> {

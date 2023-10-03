@@ -9,7 +9,6 @@ pub(crate) async fn download_server(
     source: &str,
     target_directory: PathBuf,
 ) -> anyhow::Result<PathBuf> {
-    let path: PathBuf;
     fs::create_dir_all(&target_directory)?;
 
     if util::url::is_url(source) {
@@ -18,7 +17,7 @@ pub(crate) async fn download_server(
             util::url::get_filename_from_url(source)
         ));
 
-        path = util::url::download_file(source.into(), target_directory).await?;
+        Ok(util::url::download_file(source.into(), target_directory).await?)
     } else {
         logger::info(&format!("Installing server JAR from \"{}\"...", source));
 
@@ -30,10 +29,8 @@ pub(crate) async fn download_server(
         let dest_path = Path::new(&target_directory).join(file_name);
 
         fs::copy(source_path, &dest_path).context("Could not copy server JAR file")?;
-        path = dest_path;
+        Ok(dest_path)
     }
-
-    Ok(path)
 }
 
 pub(crate) async fn download_plugins(
@@ -73,7 +70,7 @@ pub(crate) async fn download_plugins(
             let target_directory = target_directory.join(file_name);
 
             if !source.exists() {
-                return Err(anyhow!("The path \"{}\" does not exists", source.display()));
+                return Err(anyhow!("The path \"{}\" does not exist", source.display()));
             } else if source.is_dir() {
                 return Err(anyhow!("The path \"{}\" is not a file", source.display()));
             }
