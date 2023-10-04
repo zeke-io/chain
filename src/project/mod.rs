@@ -36,9 +36,6 @@ pub struct Dependency {
 pub struct ProjectMetadata {
     pub name: String,
     pub server: Server,
-    // TODO: Remove
-    #[deprecated]
-    pub server_jar: String,
     #[serde(default)]
     pub dependencies: HashMap<String, String>,
 }
@@ -83,15 +80,15 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
 
 pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()> {
     let project = load_project(root_directory)?;
+    let server = &project.project_details.server;
 
     let server_jar_path = installer::download_server(
-        &project.project_details.server_jar,
+        &server.source,
         project.root_directory.join(".chain").join("versions"),
     )
     .await?;
 
-    let version_manifest =
-        VersionManifest::new(&project.project_details.server_jar, server_jar_path);
+    let version_manifest = VersionManifest::new(&server.source, server_jar_path);
     version_manifest.save_manifest(&project.root_directory.join(".chain").join("version.yml"))?;
 
     let dependencies = installer::download_plugins(
@@ -111,7 +108,7 @@ pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()
     Ok(())
 }
 
-pub async fn add_dependency(directory: PathBuf, dependency_id: String) -> anyhow::Result<()> {
+pub async fn add_dependency(_directory: PathBuf, _dependency_id: String) -> anyhow::Result<()> {
     todo!()
 }
 
