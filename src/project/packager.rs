@@ -37,11 +37,12 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     logger::info("Preparing server files...");
     fs::create_dir_all(&server_directory)?;
 
-    project::prepare_dependencies(
-        dependencies.dependencies,
-        project.project_details.dependencies,
-        server_directory.join("plugins"),
-    )?;
+    // TODO: Refactor
+    // project::prepare_dependencies(
+    //     dependencies.dependencies,
+    //     project.project_details.dependencies,
+    //     server_directory.join("plugins"),
+    // )?;
 
     project::process_files(project_directory, &server_directory, settings.clone())?;
 

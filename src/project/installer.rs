@@ -33,6 +33,7 @@ pub(crate) async fn download_server(
     }
 }
 
+#[deprecated]
 pub(crate) async fn download_plugins(
     dependencies: &HashMap<String, String>,
     target_directory: PathBuf,

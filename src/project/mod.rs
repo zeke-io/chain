@@ -37,7 +37,7 @@ pub struct ProjectMetadata {
     pub name: String,
     pub server: Server,
     #[serde(default)]
-    pub dependencies: HashMap<String, String>,
+    pub dependencies: HashMap<String, Dependency>,
 }
 
 pub struct Project {
@@ -91,8 +91,9 @@ pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()
     let version_manifest = VersionManifest::new(&server.source, server_jar_path);
     version_manifest.save_manifest(&project.root_directory.join(".chain").join("version.yml"))?;
 
+    // TODO: Refactor
     let dependencies = installer::download_plugins(
-        &project.project_details.dependencies,
+        &Default::default(),
         project.root_directory.join(".chain").join("dependencies"),
     )
     .await?;
@@ -290,11 +291,12 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
     }
 
     if !no_setup {
-        prepare_dependencies(
-            dependencies.dependencies,
-            project.project_details.dependencies,
-            server_directory.join("plugins"),
-        )?;
+        // TODO: Refactor
+        // prepare_dependencies(
+        //     dependencies.dependencies,
+        //     project.project_details.dependencies,
+        //     server_directory.join("plugins"),
+        // )?;
 
         process_files(
             project_directory,
