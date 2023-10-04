@@ -18,9 +18,26 @@ use tokio::process::Command;
 use walkdir::WalkDir;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Server {
+    pub source: String,
+    pub brand: String,
+    pub version: String,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+pub struct Dependency {
+    pub source: Option<String>,
+    pub version: Option<String>,
+    pub required: Option<bool>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
-pub struct ProjectDetails {
+pub struct ProjectMetadata {
     pub name: String,
+    pub server: Server,
+    // TODO: Remove
+    #[deprecated]
     pub server_jar: String,
     #[serde(default)]
     pub dependencies: HashMap<String, String>,
@@ -28,11 +45,11 @@ pub struct ProjectDetails {
 
 pub struct Project {
     pub root_directory: PathBuf,
-    pub project_details: ProjectDetails,
+    pub project_details: ProjectMetadata,
 }
 
 impl Project {
-    pub(crate) fn new(directory: &Path, details: ProjectDetails) -> Self {
+    pub(crate) fn new(directory: &Path, details: ProjectMetadata) -> Self {
         Self {
             root_directory: directory.to_path_buf(),
             project_details: details,
@@ -56,7 +73,7 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = chain_file.parent().unwrap();
 
     let details_file = fs::read_to_string(&chain_file)?;
-    let details: ProjectDetails = serde_yaml::from_str(&details_file)
+    let details: ProjectMetadata = serde_yaml::from_str(&details_file)
         .with_context(|| "The file \"chain.yml\" is invalid.")?;
 
     let project = Project::new(path, details);
