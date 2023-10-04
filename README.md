@@ -14,11 +14,11 @@
 
 You can find available installers in [Releases](https://github.com/zeke-io/chain/releases).
 
-Follow the [Installation Guide](/docs/installation.md) for manual installation from source.  
+Follow the [Installation Guide](/docs/01-installation.md) for manual installation from source.  
 
 ## Getting Started
 
-Check out the [Quick Start Guide](/docs/quick-start.md) for a quick tutorial on how to use Chain.
+Check out the [Quick Start Guide](/docs/00-quick-start.md) for a quick tutorial on how to use Chain.
 
 You can also check out the examples folder, each example has a readme with a guide on how to set them up.
 
