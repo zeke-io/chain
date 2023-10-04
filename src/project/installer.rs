@@ -1,8 +1,6 @@
-use crate::project::manifests::DependencyDetails;
 use crate::util;
 use crate::util::logger;
-use anyhow::{anyhow, Context};
-use std::collections::HashMap;
+use anyhow::Context;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -32,62 +30,4 @@ pub(crate) async fn download_server(
         fs::copy(source_path, &dest_path).context("Could not copy server JAR file")?;
         Ok(dest_path)
     }
-}
-
-#[deprecated]
-pub(crate) async fn download_plugins(
-    dependencies: &HashMap<String, String>,
-    target_directory: PathBuf,
-) -> anyhow::Result<HashMap<String, DependencyDetails>> {
-    fs::create_dir_all(&target_directory)?;
-
-    let mut installed_dependencies: HashMap<String, DependencyDetails> = HashMap::new();
-    for (id, source) in dependencies {
-        if util::url::is_url(source) {
-            logger::info(&format!(
-                "Downloading \"{}\" from \"{}\"...",
-                util::url::get_filename_from_url(source),
-                source
-            ));
-
-            let path = util::url::download_file(source.clone(), target_directory.clone()).await?;
-
-            installed_dependencies.insert(
-                id.clone(),
-                DependencyDetails {
-                    source: source.clone(),
-                    file_path: path.into_os_string().into_string().unwrap(),
-                },
-            );
-            continue;
-        } else {
-            logger::info(&format!("Installing \"{}\" from \"{}\"...", id, source));
-            let source = PathBuf::from(source);
-            let fallback_name = format!("{}.jar", id);
-            let file_name = Path::new(&source)
-                .file_name()
-                .and_then(|name| name.to_str())
-                .unwrap_or(&fallback_name);
-
-            let target_directory = target_directory.join(file_name);
-
-            if !source.exists() {
-                return Err(anyhow!("The path \"{}\" does not exist", source.display()));
-            } else if source.is_dir() {
-                return Err(anyhow!("The path \"{}\" is not a file", source.display()));
-            }
-
-            fs::copy(&source, &target_directory)?;
-            installed_dependencies.insert(
-                id.clone(),
-                DependencyDetails {
-                    source: source.into_os_string().into_string().unwrap(),
-                    file_path: target_directory.into_os_string().into_string().unwrap(),
-                },
-            );
-            continue;
-        }
-    }
-
-    Ok(installed_dependencies)
 }

@@ -93,20 +93,11 @@ pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()
     let version_manifest = VersionManifest::new(&server.source, server_jar_path);
     version_manifest.save_manifest(&project.root_directory.join(".chain").join("version.yml"))?;
 
-    // TODO: Refactor
-    let dependencies = installer::download_plugins(
-        &Default::default(),
-        project.root_directory.join(".chain").join("dependencies"),
+    dependencies::install_dependencies(
+        &project.project_details.dependencies,
+        &project.root_directory,
     )
     .await?;
-
-    let dependencies_manifest = DependenciesManifest::new(dependencies);
-    dependencies_manifest.save_manifest(
-        &project
-            .root_directory
-            .join(".chain")
-            .join("dependencies.yml"),
-    )?;
 
     Ok(())
 }
