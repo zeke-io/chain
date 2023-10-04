@@ -65,14 +65,14 @@ async fn install_from_source(
     source: &str,
     destination: PathBuf,
 ) -> anyhow::Result<DependencyFile> {
-    if util::url::is_url(source) {
+    let file_path = if util::url::is_url(source) {
         logger::info(&format!(
             "Installing \"{}\" from \"{}\"...",
             util::url::get_filename_from_url(source),
             source
         ));
 
-        util::url::download_file(source.into(), destination.to_path_buf()).await?;
+        util::url::download_file(source.into(), destination.to_path_buf()).await?
     } else {
         logger::info(&format!("Installing \"{}\" from \"{}\"...", id, source));
         let source = PathBuf::from(source);
@@ -90,10 +90,17 @@ async fn install_from_source(
         }
 
         fs::copy(&source, &target_directory)?;
-    }
+        target_directory
+    };
+
+    let filename = file_path
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap()
+        .to_string();
 
     Ok(DependencyFile {
-        filename: "".to_string(),
+        filename,
         source: source.into(),
         hash: "".to_string(),
     })

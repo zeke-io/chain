@@ -4,9 +4,7 @@ pub mod manifests;
 pub mod packager;
 pub mod settings;
 
-use crate::project::manifests::{
-    DependenciesManifest, DependencyDetails, Manifest, VersionManifest,
-};
+use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
 use crate::util;
 use crate::util::logger;
@@ -106,61 +104,61 @@ pub async fn add_dependency(_directory: PathBuf, _dependency_id: String) -> anyh
     todo!()
 }
 
-pub fn prepare_dependencies(
-    cached_dependencies: HashMap<String, DependencyDetails>,
-    dependencies: HashMap<String, String>,
-    target_directory: PathBuf,
-) -> anyhow::Result<()> {
-    fn compare_dependencies(
-        dependencies: HashMap<String, String>,
-        cached_dependencies: &HashMap<String, DependencyDetails>,
-    ) -> bool {
-        if dependencies.len() != cached_dependencies.len() {
-            return false;
-        }
-
-        for (id, source) in dependencies {
-            if let Some(dep_details) = cached_dependencies.get(id.as_str()) {
-                if source != dep_details.source {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        }
-
-        true
-    }
-
-    if !compare_dependencies(dependencies, &cached_dependencies) {
-        return Err(anyhow!(
-            "Detected dependency changes, make sure to run `chain install` first"
-        ));
-    }
-
-    for (id, dep_details) in cached_dependencies {
-        let dependency_file = Path::new(&dep_details.file_path);
-        if !dependency_file.exists() {
-            return Err(anyhow!(
-                "Dependency \"{}\" was not found, make sure to run `chain install` first",
-                id
-            ));
-        }
-
-        fs::create_dir_all(&target_directory)?;
-        fs::copy(
-            &dependency_file,
-            target_directory.join(
-                dependency_file
-                    .file_name()
-                    .and_then(|name| name.to_str())
-                    .unwrap_or(format!("{}.jar", id).as_str()),
-            ),
-        )?;
-    }
-
-    Ok(())
-}
+// pub fn prepare_dependencies(
+//     cached_dependencies: HashMap<String, DependencyDetails>,
+//     dependencies: HashMap<String, String>,
+//     target_directory: PathBuf,
+// ) -> anyhow::Result<()> {
+//     fn compare_dependencies(
+//         dependencies: HashMap<String, String>,
+//         cached_dependencies: &HashMap<String, DependencyDetails>,
+//     ) -> bool {
+//         if dependencies.len() != cached_dependencies.len() {
+//             return false;
+//         }
+//
+//         for (id, source) in dependencies {
+//             if let Some(dep_details) = cached_dependencies.get(id.as_str()) {
+//                 if source != dep_details.source {
+//                     return false;
+//                 }
+//             } else {
+//                 return false;
+//             }
+//         }
+//
+//         true
+//     }
+//
+//     if !compare_dependencies(dependencies, &cached_dependencies) {
+//         return Err(anyhow!(
+//             "Detected dependency changes, make sure to run `chain install` first"
+//         ));
+//     }
+//
+//     for (id, dep_details) in cached_dependencies {
+//         let dependency_file = Path::new(&dep_details.file_path);
+//         if !dependency_file.exists() {
+//             return Err(anyhow!(
+//                 "Dependency \"{}\" was not found, make sure to run `chain install` first",
+//                 id
+//             ));
+//         }
+//
+//         fs::create_dir_all(&target_directory)?;
+//         fs::copy(
+//             &dependency_file,
+//             target_directory.join(
+//                 dependency_file
+//                     .file_name()
+//                     .and_then(|name| name.to_str())
+//                     .unwrap_or(format!("{}.jar", id).as_str()),
+//             ),
+//         )?;
+//     }
+//
+//     Ok(())
+// }
 
 pub fn process_files<P: AsRef<Path>>(
     root_directory: &Path,
