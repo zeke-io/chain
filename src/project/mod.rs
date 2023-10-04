@@ -7,7 +7,8 @@ use crate::project::manifests::{
     DependenciesManifest, DependencyDetails, Manifest, VersionManifest,
 };
 use crate::project::settings::ProjectSettings;
-use crate::{logger, util};
+use crate::util;
+use crate::util::logger;
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

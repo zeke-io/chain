@@ -1,4 +1,4 @@
-use crate::logger;
+use crate::util::logger;
 use inquire::{Confirm, Text};
 use std::fs;
 use std::fs::File;

@@ -1,6 +1,7 @@
 use crate::project::manifests::{DependenciesManifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
-use crate::{logger, project};
+use crate::project;
+use crate::util::logger;
 use anyhow::Context;
 use std::fs;
 use std::fs::File;

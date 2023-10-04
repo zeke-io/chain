@@ -1,5 +1,6 @@
 use crate::project::manifests::DependencyDetails;
-use crate::{logger, util};
+use crate::util;
+use crate::util::logger;
 use anyhow::{anyhow, Context};
 use std::collections::HashMap;
 use std::fs;
