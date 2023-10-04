@@ -33,18 +33,13 @@ pub async fn install_dependencies(
         let mut files = vec![];
 
         if let Some(source) = &dependency.source {
-            let file_path = install_from_source(
+            let file = install_from_source(
                 &id,
                 &source,
                 root_directory.join(".chain").join("dependencies"),
             )
             .await?;
-
-            files = vec![DependencyFile {
-                filename: "".to_string(),
-                source: "".to_string(),
-                hash: "".to_string(),
-            }];
+            files = vec![file];
         } else if let Some(_version) = &dependency.version {
             // TODO: Implement
             // download_version(id, version)?;
@@ -65,7 +60,11 @@ pub async fn install_dependencies(
     Ok(())
 }
 
-async fn install_from_source(id: &str, source: &str, destination: PathBuf) -> anyhow::Result<()> {
+async fn install_from_source(
+    id: &str,
+    source: &str,
+    destination: PathBuf,
+) -> anyhow::Result<DependencyFile> {
     if util::url::is_url(source) {
         logger::info(&format!(
             "Installing \"{}\" from \"{}\"...",
@@ -93,5 +92,9 @@ async fn install_from_source(id: &str, source: &str, destination: PathBuf) -> an
         fs::copy(&source, &target_directory)?;
     }
 
-    Ok(())
+    Ok(DependencyFile {
+        filename: "".to_string(),
+        source: source.into(),
+        hash: "".to_string(),
+    })
 }
