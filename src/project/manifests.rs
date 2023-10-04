@@ -2,13 +2,13 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub trait Manifest {
     type ManifestType;
 
-    fn load_manifest(project_directory: &PathBuf) -> anyhow::Result<Self::ManifestType>;
-    fn save_manifest(&self, directory: &PathBuf) -> anyhow::Result<()>;
+    fn load_manifest(project_directory: &Path) -> anyhow::Result<Self::ManifestType>;
+    fn save_manifest(&self, directory: &Path) -> anyhow::Result<()>;
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -33,7 +33,7 @@ impl VersionManifest {
 impl Manifest for VersionManifest {
     type ManifestType = VersionManifest;
 
-    fn load_manifest(project_directory: &PathBuf) -> anyhow::Result<Self::ManifestType> {
+    fn load_manifest(project_directory: &Path) -> anyhow::Result<Self::ManifestType> {
         let data_directory = project_directory.join(".chain");
         let contents = fs::read_to_string(data_directory.join("version.yml"))
             .context("Could not find version manifest file")?;
@@ -45,7 +45,7 @@ impl Manifest for VersionManifest {
         Ok(version_data)
     }
 
-    fn save_manifest(&self, directory: &PathBuf) -> anyhow::Result<()> {
+    fn save_manifest(&self, directory: &Path) -> anyhow::Result<()> {
         let parsed_manifest = serde_yaml::to_string(&self)?;
         fs::write(directory, parsed_manifest).context("Could not save manifest file")
     }
@@ -77,7 +77,7 @@ impl DependenciesManifest {
 impl Manifest for DependenciesManifest {
     type ManifestType = DependenciesManifest;
 
-    fn load_manifest(project_directory: &PathBuf) -> anyhow::Result<Self::ManifestType> {
+    fn load_manifest(project_directory: &Path) -> anyhow::Result<Self::ManifestType> {
         let data_directory = project_directory.join(".chain");
         let contents = fs::read_to_string(data_directory.join("dependencies.yml"))
             .context("Could not find dependencies manifest file")?;
@@ -93,7 +93,7 @@ impl Manifest for DependenciesManifest {
         Ok(manifest)
     }
 
-    fn save_manifest(&self, directory: &PathBuf) -> anyhow::Result<()> {
+    fn save_manifest(&self, directory: &Path) -> anyhow::Result<()> {
         let parsed_manifest = serde_yaml::to_string(&self.dependencies)?;
         fs::write(directory, parsed_manifest).context("Could not save manifest file")
     }

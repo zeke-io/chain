@@ -1,5 +1,9 @@
 # Installation
 
+## Windows
+
+You can find an installer for each version in [Releases](https://github.com/zeke-io/chain/releases). 
+
 ## Manual Installation (from source)
 
 ### Requirements

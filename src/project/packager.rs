@@ -31,7 +31,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         .get_manifest::<VersionManifest>()
         .context("Version manifest file was not found, make sure to run `chain install` first")?;
     let dependencies = project.get_manifest::<DependenciesManifest>().context(
-        "Dependencies manifest file was not found, make sure to run `chain install` first",
+        "Dependency manifest file was not found, make sure to run `chain install` first",
     )?;
 
     logger::info("Preparing server files...");

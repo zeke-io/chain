@@ -5,7 +5,7 @@ use std::path::PathBuf;
 use url::Url;
 
 pub fn is_url(input: &str) -> bool {
-    if let Ok(_) = Url::parse(input) {
+    if Url::parse(input).is_ok() {
         return true;
     }
 
@@ -36,11 +36,11 @@ pub fn get_filename_from_url(url: &str) -> String {
         let binding = Url::parse(url).unwrap();
         let url_path = binding.path_segments();
 
-        return if let Some(file_name) = url_path.and_then(Iterator::last) {
+        if let Some(file_name) = url_path.and_then(Iterator::last) {
             file_name.to_owned()
         } else {
-            "file.chaindf".to_owned()
-        };
+            "file.cdf".to_owned()
+        }
     }
 
     inner(url)

@@ -1,16 +1,16 @@
-use chain::project;
-use chain::project::packager;
-use clap::Parser;
+pub mod commands;
+pub mod logger;
+pub mod project;
+pub mod template;
+pub mod util;
 
 use crate::commands::{Cli, Commands};
-
-mod commands;
-mod template;
+use crate::project::packager;
+use clap::Parser;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-
     let current_directory = std::env::current_dir()?;
 
     match cli.command {
