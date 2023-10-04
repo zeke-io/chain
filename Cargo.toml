@@ -17,10 +17,6 @@ copyright = "2023 <ezequiel_io@pm.me>"
 name = "chain"
 path = "src/cli/main.rs"
 
-[[bin]]
-name = "chainr"
-path = "src/runner/main.rs"
-
 [dependencies]
 anyhow = "1.0.71"
 clap = { version = "4.3.4", features = ["derive"] }
