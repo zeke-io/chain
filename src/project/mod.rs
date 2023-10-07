@@ -4,6 +4,7 @@ pub mod manifests;
 pub mod packager;
 pub mod settings;
 
+use crate::project::dependencies::DependencyType;
 use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
 use crate::util;
@@ -24,11 +25,19 @@ pub struct Server {
     pub version: String,
 }
 
+// Workaround for https://github.com/serde-rs/serde/issues/368
+pub const fn default_bool<const V: bool>() -> bool {
+    V
+}
+
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct Dependency {
     pub source: Option<String>,
     pub version: Option<String>,
-    pub required: Option<bool>,
+    #[serde(rename = "type", default)]
+    pub dependency_type: DependencyType,
+    #[serde(default = "default_bool::<false>")]
+    pub required: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

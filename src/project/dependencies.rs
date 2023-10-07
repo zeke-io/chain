@@ -8,9 +8,10 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub enum DependencyType {
     Mod,
+    #[default]
     Plugin,
     DataPack,
     ResourcePack,
