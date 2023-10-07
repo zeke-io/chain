@@ -106,3 +106,44 @@ async fn install_from_source(
         hash: "".to_string(),
     })
 }
+
+pub fn prepare_server_dependencies(
+    dependencies: DependenciesManifest,
+    dependencies_directory: &Path,
+    server_directory: &Path,
+) -> anyhow::Result<()> {
+    for (id, dependency) in dependencies.0 {
+        logger::info(&format!("Preparing dependency {}...", &id));
+        let dependency_files = dependency.files;
+        let destination_path = match dependency.dependency_type {
+            DependencyType::Mod => server_directory.join("mods"),
+            DependencyType::Plugin => server_directory.join("plugins"),
+            DependencyType::ResourcePack => server_directory.join("resourcepacks"),
+            _ => {
+                return Err(anyhow!(
+                    "Dependency type {:?} for {} is not yet supported!",
+                    dependency.dependency_type,
+                    id
+                ));
+            }
+        };
+
+        for file in dependency_files {
+            let file_path = dependencies_directory.join(file.filename);
+            if !file_path.exists() {
+                return Err(anyhow!(
+                    "Dependency \"{}\" was not found, make sure to run `chain install` first",
+                    id
+                ));
+            }
+
+            fs::create_dir_all(&destination_path)?;
+            fs::copy(
+                &file_path,
+                &destination_path.join(file_path.file_name().unwrap()),
+            )?;
+        }
+    }
+
+    Ok(())
+}

@@ -59,7 +59,7 @@ pub struct DependencyDetails {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct DependenciesManifest(HashMap<String, DependencyDetails>);
+pub struct DependenciesManifest(pub(crate) HashMap<String, DependencyDetails>);
 
 impl DependenciesManifest {
     pub fn new(dependencies: HashMap<String, DependencyDetails>) -> Self {
