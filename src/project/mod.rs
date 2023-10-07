@@ -217,7 +217,7 @@ pub fn process_files<P: AsRef<Path>>(
     let server_directory = server_directory.as_ref();
 
     for (target_path, source_path) in &settings.files {
-        let source_path = root_directory.join(&source_path);
+        let source_path = root_directory.join(source_path);
         let target_path = server_directory.join(target_path);
 
         if !source_path.exists() {
@@ -228,7 +228,7 @@ pub fn process_files<P: AsRef<Path>>(
         }
 
         if source_path.is_file() {
-            fs::create_dir_all(&target_path.parent().unwrap()).with_context(|| {
+            fs::create_dir_all(target_path.parent().unwrap()).with_context(|| {
                 format!("Could not create folders \"{}\"", target_path.display())
             })?;
 
@@ -276,7 +276,7 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
     let version = project
         .get_manifest::<VersionManifest>()
         .context("Version manifest file was not found, make sure to run `chain install` first")?;
-    let dependencies = project.get_manifest::<DependenciesManifest>().context(
+    let _dependencies = project.get_manifest::<DependenciesManifest>().context(
         "Dependencies manifest file was not found, make sure to run `chain install` first",
     )?;
 

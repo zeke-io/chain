@@ -35,8 +35,8 @@ pub async fn install_dependencies(
 
         if let Some(source) = &dependency.source {
             let file = install_from_source(
-                &id,
-                &source,
+                id,
+                source,
                 root_directory.join(".chain").join("dependencies"),
             )
             .await?;
