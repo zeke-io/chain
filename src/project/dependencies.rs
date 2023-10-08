@@ -92,22 +92,24 @@ async fn install_from_source(
     destination: PathBuf,
 ) -> anyhow::Result<DependencyFile> {
     let file_path = if util::url::is_url(source) {
+        let filename = util::url::get_filename_from_url(source);
         logger::info(&format!(
-            "Installing \"{}\" from \"{}\"...",
-            util::url::get_filename_from_url(source),
-            source
+            "Installing \"{}\" ({}) from \"{}\"...",
+            id, filename, source
         ));
 
-        util::url::download_file(source.into(), destination.to_path_buf()).await?
+        let destination_file = destination.join(filename);
+        fs::create_dir_all(destination_file.parent().unwrap())?;
+        util::url::download_file(source.into(), destination_file).await?
     } else {
         logger::info(&format!("Installing \"{}\" from \"{}\"...", id, source));
         let source = PathBuf::from(source);
         let fallback_name = format!("{}.jar", id);
-        let file_name = Path::new(&source)
+        let filename = Path::new(&source)
             .file_name()
             .and_then(|name| name.to_str())
             .unwrap_or(&fallback_name);
-        let target_directory = destination.join(file_name);
+        let target_directory = destination.join(filename);
 
         if !source.exists() {
             return Err(anyhow!("The path \"{}\" does not exist", source.display()));
