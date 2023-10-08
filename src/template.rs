@@ -1,4 +1,4 @@
-use crate::logger;
+use crate::util::logger;
 use inquire::{Confirm, Text};
 use std::fs;
 use std::fs::File;
@@ -54,10 +54,13 @@ fn generate_project_file(
 ) -> anyhow::Result<()> {
     let chain = r#"name: {name}
 
-server-jar: {jar}
+server:
+  source: {source}
+  brand: 
+  version: 
 "#
     .replace("{name}", server_name)
-    .replace("{jar}", server_jar);
+    .replace("{source}", server_jar);
 
     let settings = r#"java-runtime: java
 

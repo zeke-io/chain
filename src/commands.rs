@@ -17,6 +17,8 @@ pub enum Commands {
         #[arg(short, long)]
         force: bool,
     },
+    #[command(about = "Add a plugin to the project")]
+    Add { name: String },
     #[command(about = "Run the server project")]
     Run {
         #[arg(short, long)]

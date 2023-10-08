@@ -1,4 +1,4 @@
-use crate::logger;
+use crate::util::logger;
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

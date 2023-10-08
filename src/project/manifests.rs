@@ -1,3 +1,4 @@
+use crate::project::dependencies::{DependencyFile, DependencyType};
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -53,24 +54,16 @@ impl Manifest for VersionManifest {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct DependencyDetails {
-    pub file_path: String,
-    pub source: String,
+    pub dependency_type: DependencyType,
+    pub files: Vec<DependencyFile>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct DependenciesManifestFile(HashMap<String, DependencyDetails>);
-
-pub struct DependenciesManifest {
-    pub dependencies: HashMap<String, DependencyDetails>,
-    pub dependencies_directory: PathBuf,
-}
+pub struct DependenciesManifest(pub(crate) HashMap<String, DependencyDetails>);
 
 impl DependenciesManifest {
     pub fn new(dependencies: HashMap<String, DependencyDetails>) -> Self {
-        Self {
-            dependencies,
-            dependencies_directory: Default::default(),
-        }
+        Self(dependencies)
     }
 }
 
@@ -82,19 +75,14 @@ impl Manifest for DependenciesManifest {
         let contents = fs::read_to_string(data_directory.join("dependencies.yml"))
             .context("Could not find dependencies manifest file")?;
 
-        let dependencies: DependenciesManifestFile = serde_yaml::from_str(&contents)
+        let dependencies: DependenciesManifest = serde_yaml::from_str(&contents)
             .context("Could not parse dependencies manifest file")?;
 
-        let manifest = DependenciesManifest {
-            dependencies: dependencies.0,
-            dependencies_directory: data_directory.join("dependencies"),
-        };
-
-        Ok(manifest)
+        Ok(dependencies)
     }
 
     fn save_manifest(&self, directory: &Path) -> anyhow::Result<()> {
-        let parsed_manifest = serde_yaml::to_string(&self.dependencies)?;
+        let parsed_manifest = serde_yaml::to_string(&self.0)?;
         fs::write(directory, parsed_manifest).context("Could not save manifest file")
     }
 }

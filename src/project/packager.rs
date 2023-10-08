@@ -1,6 +1,8 @@
+use crate::project;
+use crate::project::dependencies;
 use crate::project::manifests::{DependenciesManifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
-use crate::{logger, project};
+use crate::util::logger;
 use anyhow::Context;
 use std::fs;
 use std::fs::File;
@@ -37,10 +39,10 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     logger::info("Preparing server files...");
     fs::create_dir_all(&server_directory)?;
 
-    project::prepare_dependencies(
-        dependencies.dependencies,
-        project.project_details.dependencies,
-        server_directory.join("plugins"),
+    dependencies::prepare_server_dependencies(
+        dependencies,
+        &project_directory.join(".chain").join("dependencies"),
+        &server_directory,
     )?;
 
     project::process_files(project_directory, &server_directory, settings.clone())?;

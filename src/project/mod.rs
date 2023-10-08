@@ -1,13 +1,14 @@
+pub mod dependencies;
 mod installer;
 pub mod manifests;
 pub mod packager;
 pub mod settings;
 
-use crate::project::manifests::{
-    DependenciesManifest, DependencyDetails, Manifest, VersionManifest,
-};
+use crate::project::dependencies::Dependency;
+use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
-use crate::{logger, util};
+use crate::util;
+use crate::util::logger;
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -18,21 +19,28 @@ use tokio::process::Command;
 use walkdir::WalkDir;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Server {
+    pub source: String,
+    pub brand: String,
+    pub version: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
-pub struct ProjectDetails {
+pub struct ProjectMetadata {
     pub name: String,
-    pub server_jar: String,
+    pub server: Server,
     #[serde(default)]
-    pub dependencies: HashMap<String, String>,
+    pub dependencies: HashMap<String, Dependency>,
 }
 
 pub struct Project {
     pub root_directory: PathBuf,
-    pub project_details: ProjectDetails,
+    pub project_details: ProjectMetadata,
 }
 
 impl Project {
-    pub(crate) fn new(directory: &Path, details: ProjectDetails) -> Self {
+    pub(crate) fn new(directory: &Path, details: ProjectMetadata) -> Self {
         Self {
             root_directory: directory.to_path_buf(),
             project_details: details,
@@ -56,7 +64,7 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = chain_file.parent().unwrap();
 
     let details_file = fs::read_to_string(&chain_file)?;
-    let details: ProjectDetails = serde_yaml::from_str(&details_file)
+    let details: ProjectMetadata = serde_yaml::from_str(&details_file)
         .with_context(|| "The file \"chain.yml\" is invalid.")?;
 
     let project = Project::new(path, details);
@@ -66,88 +74,28 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
 
 pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()> {
     let project = load_project(root_directory)?;
+    let server = &project.project_details.server;
 
     let server_jar_path = installer::download_server(
-        &project.project_details.server_jar,
+        &server.source,
         project.root_directory.join(".chain").join("versions"),
     )
     .await?;
 
-    let version_manifest =
-        VersionManifest::new(&project.project_details.server_jar, server_jar_path);
+    let version_manifest = VersionManifest::new(&server.source, server_jar_path);
     version_manifest.save_manifest(&project.root_directory.join(".chain").join("version.yml"))?;
 
-    let dependencies = installer::download_plugins(
+    dependencies::install_dependencies(
         &project.project_details.dependencies,
-        project.root_directory.join(".chain").join("dependencies"),
+        &project.root_directory,
     )
     .await?;
-
-    let dependencies_manifest = DependenciesManifest::new(dependencies);
-    dependencies_manifest.save_manifest(
-        &project
-            .root_directory
-            .join(".chain")
-            .join("dependencies.yml"),
-    )?;
 
     Ok(())
 }
 
-pub fn prepare_dependencies(
-    cached_dependencies: HashMap<String, DependencyDetails>,
-    dependencies: HashMap<String, String>,
-    target_directory: PathBuf,
-) -> anyhow::Result<()> {
-    fn compare_dependencies(
-        dependencies: HashMap<String, String>,
-        cached_dependencies: &HashMap<String, DependencyDetails>,
-    ) -> bool {
-        if dependencies.len() != cached_dependencies.len() {
-            return false;
-        }
-
-        for (id, source) in dependencies {
-            if let Some(dep_details) = cached_dependencies.get(id.as_str()) {
-                if source != dep_details.source {
-                    return false;
-                }
-            } else {
-                return false;
-            }
-        }
-
-        true
-    }
-
-    if !compare_dependencies(dependencies, &cached_dependencies) {
-        return Err(anyhow!(
-            "Detected dependency changes, make sure to run `chain install` first"
-        ));
-    }
-
-    for (id, dep_details) in cached_dependencies {
-        let dependency_file = Path::new(&dep_details.file_path);
-        if !dependency_file.exists() {
-            return Err(anyhow!(
-                "Dependency \"{}\" was not found, make sure to run `chain install` first",
-                id
-            ));
-        }
-
-        fs::create_dir_all(&target_directory)?;
-        fs::copy(
-            &dependency_file,
-            target_directory.join(
-                dependency_file
-                    .file_name()
-                    .and_then(|name| name.to_str())
-                    .unwrap_or(format!("{}.jar", id).as_str()),
-            ),
-        )?;
-    }
-
-    Ok(())
+pub async fn add_dependency(_directory: PathBuf, _dependency_id: String) -> anyhow::Result<()> {
+    todo!()
 }
 
 pub fn process_files<P: AsRef<Path>>(
@@ -198,7 +146,7 @@ pub fn process_files<P: AsRef<Path>>(
     let server_directory = server_directory.as_ref();
 
     for (target_path, source_path) in &settings.files {
-        let source_path = root_directory.join(&source_path);
+        let source_path = root_directory.join(source_path);
         let target_path = server_directory.join(target_path);
 
         if !source_path.exists() {
@@ -209,7 +157,7 @@ pub fn process_files<P: AsRef<Path>>(
         }
 
         if source_path.is_file() {
-            fs::create_dir_all(&target_path.parent().unwrap()).with_context(|| {
+            fs::create_dir_all(target_path.parent().unwrap()).with_context(|| {
                 format!("Could not create folders \"{}\"", target_path.display())
             })?;
 
@@ -257,9 +205,9 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
     let version = project
         .get_manifest::<VersionManifest>()
         .context("Version manifest file was not found, make sure to run `chain install` first")?;
-    let dependencies = project.get_manifest::<DependenciesManifest>().context(
-        "Dependencies manifest file was not found, make sure to run `chain install` first",
-    )?;
+    let dependencies = project
+        .get_manifest::<DependenciesManifest>()
+        .context("Dependency manifest was not found, make sure to run `chain install` first")?;
 
     let server_directory = project_directory.join("server");
     if !server_directory.exists() || !server_directory.is_dir() {
@@ -272,10 +220,10 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
     }
 
     if !no_setup {
-        prepare_dependencies(
-            dependencies.dependencies,
-            project.project_details.dependencies,
-            server_directory.join("plugins"),
+        dependencies::prepare_server_dependencies(
+            dependencies,
+            &project_directory.join(".chain").join("dependencies"),
+            &server_directory,
         )?;
 
         process_files(
