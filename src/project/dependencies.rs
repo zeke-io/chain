@@ -23,12 +23,12 @@ pub struct Dependency {
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
+#[serde(rename_all = "snake_case")]
 pub enum DependencyType {
     Mod,
     #[default]
     Plugin,
     DataPack,
-    ResourcePack,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -145,7 +145,6 @@ pub fn prepare_server_dependencies(
         let destination_path = match dependency.dependency_type {
             DependencyType::Mod => server_directory.join("mods"),
             DependencyType::Plugin => server_directory.join("plugins"),
-            DependencyType::ResourcePack => server_directory.join("resourcepacks"),
             _ => {
                 return Err(anyhow!(
                     "Dependency type {:?} for {} is not yet supported!",
