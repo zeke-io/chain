@@ -1,15 +1,15 @@
 use crate::util::logger;
-use inquire::{Confirm, Text};
+use inquire::Text;
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
-pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<()> {
-    let mut path: PathBuf = match opt_path {
-        Some(some_path) => PathBuf::from(some_path.as_ref()),
-        None => std::env::current_dir()?,
-    };
+pub fn generate_template(path: &Path) -> anyhow::Result<()> {
+    logger::info(&format!(
+        r#"Project files will be generated at {:?}!"#,
+        path.display()
+    ));
 
     let suggested_server_name: &str = path
         .file_name()
@@ -19,20 +19,13 @@ pub fn generate_template<P: AsRef<Path>>(opt_path: Option<P>) -> anyhow::Result<
         .with_default(suggested_server_name)
         .prompt()?;
 
-    let create_directory = Confirm::new("Create a separate directory?")
-        .with_placeholder("'Y' for yes, 'n' for no")
-        .prompt()?;
-    if create_directory {
-        path = path.join(&server_name);
-    }
-
     let server_jar = Text::new("Provide a path or download url for the server jar:")
         .with_placeholder("(Optional)")
         .prompt()?;
 
-    fs::create_dir_all(&path)?;
-    generate_project_file(path.as_path(), &server_name, &server_jar)?;
-    generate_git_files(path.as_path())?;
+    fs::create_dir_all(path)?;
+    generate_project_file(path, &server_name, &server_jar)?;
+    generate_git_files(path)?;
 
     logger::success(&format!(
         "Project files generated at \"{}\"!",

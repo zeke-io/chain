@@ -11,7 +11,7 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     #[command(about = "Initialize a project with a basic template")]
-    Init { path: Option<PathBuf> },
+    New { path: PathBuf },
     #[command(about = "Install the files and plugins for a project")]
     Install {
         #[arg(short, long)]
