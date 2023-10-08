@@ -2,21 +2,16 @@
 
 ## Creating a server
 
-To begin, create a directory for your server:
+To begin, run the `new` command:
 
 ```bash
-mkdir my-server
-cd my-server
-```
-Once inside the directory run the `init` command:
-
-```bash
-chain init
+# chain new <path>
+chain new my_server
 ```
 
-Running the `init` command will prompt you with some questions.
+The `new` command will prompt you with some questions and create a directory for your project.
 
-After this, run the `install` command to download the server jar and the dependencies (plugins).
+If you provided a source url for the server jar file, you can download it with the `install` command:
 
 ```bash
 chain install
@@ -34,23 +29,24 @@ chain run --no-setup
 
 ## Adding server plugins
 
-If you are using a server jar that supports plugins (Spigot, Paper, etc.), you can add plugins in the `chain.yml` file.
+If you are using a server brand that supports plugins (Spigot, Paper, etc.),
+you can add plugins in the `chain.yml` file.
 
 As an example, we will install the [spark](https://github.com/lucko/spark) plugin.
 
 ```yml
 dependencies:
-  # key: value
   # Spark plugin [https://github.com/lucko/spark]
-  spark: https://ci.lucko.me/job/spark/384/artifact/spark-bukkit/build/libs/spark-1.10.43-bukkit.jar
+  spark:
+    source: https://ci.lucko.me/job/spark/384/artifact/spark-bukkit/build/libs/spark-1.10.43-bukkit.jar
 ```
 
-The `dependencies` property is a key/value map where you define your plugins and where they come from.
+Each dependency needs a `source` and by default is treated as a plugin
+and will be installed in the `plugins` folder inside the server directory.
 
-The `key` can be anything, but it is recommended to put the name of the plugin in lowercase and using dashes instead of spaces,
-and the `value` is a file path or download url for the plugin.
+The source can be a URL or a local path to a file.
 
-When running the `install` command, Chain will download all the plugins defined in the `chain.yml` file, and save them so they can be used when running the server or when generating the server zip.
+When adding or removing dependencies, you need to install them again with the `install` command.
 
 ## Settings
 
@@ -101,12 +97,14 @@ If the settings file `settings.dev.yml` does not exists, it will load the defaul
 
 ## Pack the server
 
-You can package the files, plugins and the server jar into a zip file by running the command:
+You can package the files, plugins, and the server jar into a zip file by running the command:
 
 ```bash
 chain pack
 ```
 
-By running the command, Chain will create an `out` directory, where it is gonna place the server folder with all the files needed, and it will also generate a zip file with the contents.
+By running the command, Chain will create an `out` directory,
+where it is going to place the server folder with all the files needed,
+and it will also generate a zip file with the contents.
 
-*Chain will also generate both `batch` (Windows) and `bash` (Linux/MacOS) `start` scripts, and it will use your settings file to add the jvm options and server arguments.*
+*Chain will also generate both `batch` (Windows) and `bash` (Linux/macOS) `start` scripts, and it will use your settings file to add the jvm options and server arguments.*
