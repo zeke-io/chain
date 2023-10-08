@@ -4,7 +4,7 @@ pub mod manifests;
 pub mod packager;
 pub mod settings;
 
-use crate::project::dependencies::{Dependency, DependencyType};
+use crate::project::dependencies::Dependency;
 use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
 use crate::util;
