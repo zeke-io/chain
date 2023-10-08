@@ -1,5 +1,4 @@
 use crate::project::manifests::{DependenciesManifest, DependencyDetails, Manifest};
-use crate::project::Dependency;
 use crate::util;
 use crate::util::logger;
 use anyhow::anyhow;
@@ -7,6 +6,21 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+
+// Workaround for https://github.com/serde-rs/serde/issues/368
+pub const fn default_bool<const V: bool>() -> bool {
+    V
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+pub struct Dependency {
+    pub source: Option<String>,
+    pub version: Option<String>,
+    #[serde(rename = "type", default)]
+    pub dependency_type: DependencyType,
+    #[serde(default = "default_bool::<false>")]
+    pub required: bool,
+}
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub enum DependencyType {
