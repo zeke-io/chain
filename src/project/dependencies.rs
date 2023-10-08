@@ -48,12 +48,23 @@ pub async fn install_dependencies(
         let mut files = vec![];
 
         if let Some(source) = &dependency.source {
-            let file = install_from_source(
+            let file = match install_from_source(
                 id,
                 source,
                 root_directory.join(".chain").join("dependencies"),
             )
-            .await?;
+            .await
+            {
+                Ok(file) => file,
+                Err(err) => {
+                    if dependency.required {
+                        return Err(err);
+                    } else {
+                        logger::warn(&format!("Could not install {} ({}), skipping...", id, err));
+                        continue;
+                    }
+                }
+            };
             files = vec![file];
         } else if let Some(_version) = &dependency.version {
             // TODO: Implement
