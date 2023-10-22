@@ -55,17 +55,12 @@ server:
     .replace("{name}", server_name)
     .replace("{source}", server_jar);
 
-    let settings = r#"java-runtime: java
-
-jvm-options:
+    let settings = r#"jvm-options:
   - "-Dfile.encoding=UTF-8"
   - "-Xmx4G"
 
 server-args:
   - "--nogui"
-
-env:
-  CHAIN_SERVER_NAME: {name}
 "#
     .replace("{name}", server_name);
 
@@ -84,6 +79,9 @@ settings.dev.yml
 # Server
 server/
 out/
+
+# Env files
+.env*.local
 "#;
 
     let readme = r#"## Install
