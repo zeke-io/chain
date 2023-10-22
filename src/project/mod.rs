@@ -58,6 +58,7 @@ impl Project {
 
 pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = path.as_ref();
+    dotenv_flow::dotenv_flow().ok();
 
     let chain_file = util::file::find_up_file(path, "chain.yml")
         .context("Could not find \"chain.yml\" file, please create one")?;
@@ -103,11 +104,7 @@ pub fn process_files<P: AsRef<Path>>(
     server_directory: P,
     settings: ProjectSettings,
 ) -> anyhow::Result<()> {
-    fn inner_file_processor(
-        settings: ProjectSettings,
-        source_path: &PathBuf,
-        target_path: &PathBuf,
-    ) -> anyhow::Result<()> {
+    fn inner_file_processor(source_path: &PathBuf, target_path: &PathBuf) -> anyhow::Result<()> {
         // If the file is (most likely) a binary, just copy it
         if util::file::is_binary(source_path)? {
             fs::copy(source_path, target_path).with_context(|| {
@@ -124,19 +121,16 @@ pub fn process_files<P: AsRef<Path>>(
         let reg_exp = regex::Regex::new(r"\$(CHAIN_[A-Z_0-9]*)")?;
         let output = reg_exp.replace_all(&input, |caps: &regex::Captures<'_>| {
             let var_name = &caps[1];
-
-            let var_value = match env::var(var_name) {
+            match env::var(var_name) {
                 Ok(value) => value,
                 Err(_) => {
-                    // If the env var was not provided, find it in the settings file
-                    match settings.env.get(var_name) {
-                        Some(value) => value.clone(),
-                        None => "".to_string(),
-                    }
+                    logger::warn(&format!(
+                        "Could not find environment variable \"{}\", replacing it with an empty value.",
+                        var_name
+                    ));
+                    "".into()
                 }
-            };
-
-            var_value
+            }
         });
 
         fs::write(target_path, output.as_bytes())?;
@@ -161,7 +155,7 @@ pub fn process_files<P: AsRef<Path>>(
                 format!("Could not create folders \"{}\"", target_path.display())
             })?;
 
-            inner_file_processor(settings.clone(), &source_path, &target_path)?;
+            inner_file_processor(&source_path, &target_path)?;
         } else {
             if !target_path.exists() {
                 fs::create_dir_all(&target_path)?;
@@ -176,7 +170,7 @@ pub fn process_files<P: AsRef<Path>>(
                 let destination = target_path.join(relative_path);
 
                 if source.is_file() {
-                    inner_file_processor(settings.clone(), &source.to_path_buf(), &destination)?;
+                    inner_file_processor(&source.to_path_buf(), &destination)?;
                 } else {
                     fs::create_dir_all(&destination).context(format!(
                         "Could not create directory \"{}\"",
@@ -239,7 +233,11 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
 
     logger::info("Running server...");
 
-    let mut command = Command::new(settings.java_runtime);
+    let java_path = match env::var("JAVA_BIN_PATH") {
+        Ok(value) => value,
+        Err(_) => "java".into(),
+    };
+    let mut command = Command::new(java_path);
     command.current_dir(server_directory);
 
     for arg in settings.jvm_options {
