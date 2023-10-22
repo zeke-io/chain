@@ -58,6 +58,7 @@ impl Project {
 
 pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = path.as_ref();
+    dotenv_flow::dotenv_flow().ok();
 
     let chain_file = util::file::find_up_file(path, "chain.yml")
         .context("Could not find \"chain.yml\" file, please create one")?;

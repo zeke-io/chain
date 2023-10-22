@@ -207,6 +207,7 @@ dependencies = [
  "anyhow",
  "clap",
  "crossterm 0.26.1",
+ "dotenv-flow",
  "inquire",
  "regex",
  "reqwest",
@@ -386,6 +387,12 @@ dependencies = [
  "crypto-common",
  "subtle",
 ]
+
+[[package]]
+name = "dotenv-flow"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a7a5741c96d90e11c6a6f80285ccbe41541d78110242e62c4f83fabaacdf7eb4"
 
 [[package]]
 name = "dyn-clone"
