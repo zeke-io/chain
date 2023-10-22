@@ -233,7 +233,11 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
 
     logger::info("Running server...");
 
-    let mut command = Command::new(settings.java_runtime);
+    let java_path = match env::var("JAVA_BIN_PATH") {
+        Ok(value) => value,
+        Err(_) => "java".into(),
+    };
+    let mut command = Command::new(java_path);
     command.current_dir(server_directory);
 
     for arg in settings.jvm_options {

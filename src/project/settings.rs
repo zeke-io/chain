@@ -5,32 +5,15 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub fn default_java() -> String {
-    "java".to_string()
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 #[serde(rename_all = "kebab-case")]
 pub struct ProjectSettings {
-    #[serde(default = "default_java")]
-    pub java_runtime: String,
     #[serde(default)]
     pub jvm_options: Vec<String>,
     #[serde(default)]
     pub server_args: Vec<String>,
     #[serde(default)]
     pub files: HashMap<String, String>,
-}
-
-impl Default for ProjectSettings {
-    fn default() -> Self {
-        Self {
-            java_runtime: "java".to_string(),
-            jvm_options: vec![],
-            server_args: vec![],
-            files: Default::default(),
-        }
-    }
 }
 
 pub(crate) fn load_settings<P: AsRef<Path>>(

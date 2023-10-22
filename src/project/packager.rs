@@ -4,10 +4,10 @@ use crate::project::manifests::{DependenciesManifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
 use crate::util::logger;
 use anyhow::Context;
-use std::fs;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
+use std::{env, fs};
 use walkdir::WalkDir;
 use zip::write::FileOptions;
 use zip::ZipWriter;
@@ -56,9 +56,13 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         .context("Could not copy server JAR file")?;
 
     logger::info("Generating start scripts...");
+    let java_path = match env::var("JAVA_BIN_PATH") {
+        Ok(value) => value,
+        Err(_) => "java".into(),
+    };
     generate_start_scripts(
         server_directory.as_path(),
-        &settings.java_runtime.clone(),
+        &java_path,
         server_jar_name,
         settings,
     )?;
