@@ -54,8 +54,6 @@ If you want to change the jvm options, the server arguments, or the java path to
 you can create a `settings.yml` file.
 
 ```yml
-java-runtime: java
-
 jvm-options:
   - "-Dfile.encoding=UTF-8"
   - "-Xmx4G"
@@ -69,8 +67,6 @@ files:
 
 Here is an explanation of all the properties:
 
-- #### `java-runtime`
-    The `java` command or a path to the java binary.
 - #### `jvm-options`
     An array of options that will be passed to the Java Virtual Machine.
 - #### `server-args`
