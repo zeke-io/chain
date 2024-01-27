@@ -17,7 +17,7 @@ copyright = "2023 <ezequiel_io@pm.me>"
 anyhow = "1.0.71"
 clap = { version = "4.3.4", features = ["derive"] }
 crossterm = "0.26.1"
-dotenv-flow = "0.15.0"
+dotenv-flow = "0.16.2"
 inquire = "0.6.2"
 regex = "1.9.1"
 reqwest = "0.11.18"

@@ -189,13 +189,10 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
     let project = load_project(root_directory)?;
     let project_directory = &project.root_directory;
 
-    let settings = match project.get_settings(!prod) {
-        Ok(settings) => settings,
-        Err(_) => {
-            logger::warn("No settings file was found, using default values...");
-            ProjectSettings::default()
-        }
-    };
+    let settings = project.get_settings(!prod).unwrap_or_else(|_| {
+        logger::warn("No settings file was found, using default values...");
+        ProjectSettings::default()
+    });
     let version = project
         .get_manifest::<VersionManifest>()
         .context("Version manifest file was not found, make sure to run `chain install` first")?;
@@ -233,10 +230,7 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
 
     logger::info("Running server...");
 
-    let java_path = match env::var("JAVA_BIN_PATH") {
-        Ok(value) => value,
-        Err(_) => "java".into(),
-    };
+    let java_path = env::var("JAVA_BIN_PATH").unwrap_or_else(|_| "java".into());
     let mut command = Command::new(java_path);
     command.current_dir(server_directory);
 
