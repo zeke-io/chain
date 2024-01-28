@@ -25,7 +25,7 @@ pub(crate) fn load_settings<P: AsRef<Path>>(
             fs::read_to_string(&path).context("Could not find settings file, please create one")?;
 
         let settings: ProjectSettings = serde_yaml::from_str(&settings_file).context(format!(
-            "The settings file at \"{}\" is not invalid.",
+            "The settings file at \"{}\" is invalid.",
             path.display()
         ))?;
 
