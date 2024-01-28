@@ -1,9 +1,32 @@
+use crate::project::settings::ProjectSettings;
 use crate::util::logger;
-use inquire::Text;
+use inquire::{Confirm, Text};
 use std::fs;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
+
+const AIKAR_FLAGS: &[&str] = &[
+    "-Daikars.new.flags=true",
+    "-XX:+UseG1GC",
+    "-XX:+ParallelRefProcEnabled",
+    "-XX:MaxGCPauseMillis=200",
+    "-XX:+UnlockExperimentalVMOptions",
+    "-XX:+DisableExplicitGC",
+    "-XX:+AlwaysPreTouch",
+    "-XX:G1NewSizePercent=30",
+    "-XX:G1MaxNewSizePercent=40",
+    "-XX:G1HeapRegionSize=8M",
+    "-XX:G1ReservePercent=20",
+    "-XX:G1HeapWastePercent=5",
+    "-XX:G1MixedGCCountTarget=4",
+    "-XX:InitiatingHeapOccupancyPercent=15",
+    "-XX:G1MixedGCLiveThresholdPercent=90",
+    "-XX:G1RSetUpdatingPauseTimePercent=5",
+    "-XX:SurvivorRatio=32",
+    "-XX:+PerfDisableSharedMem",
+    "-XX:MaxTenuringThreshold=1",
+];
 
 pub fn generate_template(path: &Path) -> anyhow::Result<()> {
     logger::info(&format!(
@@ -19,12 +42,16 @@ pub fn generate_template(path: &Path) -> anyhow::Result<()> {
         .with_default(suggested_server_name)
         .prompt()?;
 
+    let use_flags = Confirm::new("Would you like to use Aikar's flags?")
+        .with_default(true)
+        .prompt()?;
+
     let server_jar = Text::new("Provide a path or download url for the server jar:")
         .with_placeholder("(Optional)")
         .prompt()?;
 
     fs::create_dir_all(path)?;
-    generate_project_file(path, &server_name, &server_jar)?;
+    generate_project_file(path, &server_name, &server_jar, use_flags)?;
     generate_git_files(path)?;
 
     logger::success(&format!(
@@ -44,6 +71,7 @@ fn generate_project_file(
     directory: &Path,
     server_name: &str,
     server_jar: &str,
+    use_aikar_flags: bool,
 ) -> anyhow::Result<()> {
     let chain = r#"name: {name}
 
@@ -55,14 +83,18 @@ server:
     .replace("{name}", server_name)
     .replace("{source}", server_jar);
 
-    let settings = r#"jvm-options:
-  - "-Dfile.encoding=UTF-8"
-  - "-Xmx4G"
+    let mut settings: ProjectSettings = ProjectSettings {
+        jvm_options: vec!["-Dfile.encoding=UTF-8".to_string(), "-Xmx4G".to_string()],
+        server_args: vec!["--nogui".to_string()],
+        files: Default::default(),
+    };
+    if use_aikar_flags {
+        settings
+            .jvm_options
+            .extend(AIKAR_FLAGS.iter().map(|&s| s.to_string()));
+    }
 
-server-args:
-  - "--nogui"
-"#
-    .replace("{name}", server_name);
+    let settings = serde_yaml::to_string(&settings)?;
 
     generate_file(chain.as_bytes(), directory.join("chain.yml"))?;
     generate_file(settings.as_bytes(), directory.join("settings.yml"))?;
