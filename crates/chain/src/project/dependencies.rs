@@ -1,10 +1,10 @@
+use crate::project::installer;
 use crate::project::manifests::{DependenciesManifest, DependencyDetails, Manifest};
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use crate::project::installer;
 
 // Workaround for https://github.com/serde-rs/serde/issues/368
 pub const fn default_bool<const V: bool>() -> bool {
@@ -92,7 +92,12 @@ async fn install_from_source(
 ) -> anyhow::Result<DependencyFile> {
     let file_path = if utils::is_url(source) {
         let filename = utils::get_filename_from_url(source);
-        log::info!("Installing \"{}\" ({}) from \"{}\"...", id, filename, source);
+        log::info!(
+            "Installing \"{}\" ({}) from \"{}\"...",
+            id,
+            filename,
+            source
+        );
 
         let destination_file = destination.join(filename);
         fs::create_dir_all(destination_file.parent().unwrap())?;

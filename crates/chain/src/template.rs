@@ -28,7 +28,10 @@ const AIKAR_FLAGS: &[&str] = &[
 ];
 
 pub fn generate_template(path: &Path) -> anyhow::Result<()> {
-    log::info!(r#"Project files will be generated at {:?}!"#, path.display());
+    log::info!(
+        r#"Project files will be generated at {:?}!"#,
+        path.display()
+    );
     let suggested_server_name: &str = path
         .file_name()
         .and_then(|name| name.to_str())

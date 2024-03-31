@@ -11,7 +11,10 @@ pub(crate) async fn download_server(
     fs::create_dir_all(&target_directory)?;
 
     if utils::is_url(source) {
-        log::info!("Downloading server JAR file \"{}\"...", utils::get_filename_from_url(source));
+        log::info!(
+            "Downloading server JAR file \"{}\"...",
+            utils::get_filename_from_url(source)
+        );
 
         Ok(download_file(source.into(), target_directory).await?)
     } else {
@@ -47,4 +50,3 @@ pub async fn download_file(url: String, mut destination: PathBuf) -> anyhow::Res
     file.write_all(&content)?;
     Ok(destination)
 }
-

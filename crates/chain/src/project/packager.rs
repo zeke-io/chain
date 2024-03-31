@@ -69,7 +69,10 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     log::info!("Generating ZIP file, this might take a while...");
     create_zip(out_directory.join("server.zip"), server_directory.as_path())?;
 
-    log::info!("Server ZIP file has been generated at \"{}\"!", out_directory.join("server.zip").display());
+    log::info!(
+        "Server ZIP file has been generated at \"{}\"!",
+        out_directory.join("server.zip").display()
+    );
     Ok(())
 }
 

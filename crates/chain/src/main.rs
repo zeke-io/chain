@@ -1,8 +1,8 @@
 pub mod project;
 pub mod template;
 
-use cli::{Cli, Commands, Parser};
 use crate::project::packager;
+use cli::{Cli, Commands, Parser};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
