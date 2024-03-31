@@ -7,7 +7,6 @@ pub mod settings;
 use crate::project::dependencies::Dependency;
 use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
-use crate::logger;
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -123,10 +122,11 @@ pub fn process_files<P: AsRef<Path>>(
             match env::var(var_name) {
                 Ok(value) => value,
                 Err(_) => {
-                    logger::warn(&format!(
+                    log::warn!(
                         "Could not find environment variable \"{}\", replacing it with an empty value.",
                         var_name
-                    ));
+                    );
+
                     "".into()
                 }
             }
@@ -189,7 +189,7 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
     let project_directory = &project.root_directory;
 
     let settings = project.get_settings(!prod).unwrap_or_else(|_| {
-        logger::warn("No settings file was found, using default values...");
+        log::warn!("No settings file was found, using default values...");
         ProjectSettings::default()
     });
     let version = project
@@ -222,12 +222,12 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
             settings.clone(),
         )?;
     } else {
-        logger::warn("Skipping setup, this is only recommended when running the server for the first time...");
+        log::warn!("Skipping setup, this is only recommended when running the server for the first time...");
     }
 
     let server_jar = PathBuf::from(version.jar_file);
 
-    logger::info("Running server...");
+    log::info!("Running server...");
 
     let java_path = env::var("JAVA_BIN_PATH").unwrap_or_else(|_| "java".into());
     let mut command = Command::new(java_path);

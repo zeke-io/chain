@@ -1,5 +1,4 @@
 use crate::project::manifests::{DependenciesManifest, DependencyDetails, Manifest};
-use crate::logger;
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -60,7 +59,7 @@ pub async fn install_dependencies(
                     if dependency.required {
                         return Err(err);
                     } else {
-                        logger::warn(&format!("Could not install {} ({}), skipping...", id, err));
+                        log::warn!("Could not install {} ({}), skipping...", id, err);
                         continue;
                     }
                 }
@@ -93,16 +92,13 @@ async fn install_from_source(
 ) -> anyhow::Result<DependencyFile> {
     let file_path = if utils::is_url(source) {
         let filename = utils::get_filename_from_url(source);
-        logger::info(&format!(
-            "Installing \"{}\" ({}) from \"{}\"...",
-            id, filename, source
-        ));
+        log::info!("Installing \"{}\" ({}) from \"{}\"...", id, filename, source);
 
         let destination_file = destination.join(filename);
         fs::create_dir_all(destination_file.parent().unwrap())?;
         installer::download_file(source.into(), destination_file).await?
     } else {
-        logger::info(&format!("Installing \"{}\" from \"{}\"...", id, source));
+        log::info!("Installing \"{}\" from \"{}\"...", id, source);
         let source = PathBuf::from(source);
         let fallback_name = format!("{}.jar", id);
         let filename = Path::new(&source)
@@ -140,7 +136,7 @@ pub fn prepare_server_dependencies(
     server_directory: &Path,
 ) -> anyhow::Result<()> {
     for (id, dependency) in dependencies.0 {
-        logger::info(&format!("Preparing dependency {}...", &id));
+        log::info!("Preparing dependency {}...", &id);
         let dependency_files = dependency.files;
         let destination_path = match dependency.dependency_type {
             DependencyType::Mod => server_directory.join("mods"),

@@ -1,5 +1,4 @@
 use crate::project::settings::ProjectSettings;
-use crate::logger;
 use inquire::{Confirm, Text};
 use std::fs;
 use std::fs::File;
@@ -29,11 +28,7 @@ const AIKAR_FLAGS: &[&str] = &[
 ];
 
 pub fn generate_template(path: &Path) -> anyhow::Result<()> {
-    logger::info(&format!(
-        r#"Project files will be generated at {:?}!"#,
-        path.display()
-    ));
-
+    log::info!(r#"Project files will be generated at {:?}!"#, path.display());
     let suggested_server_name: &str = path
         .file_name()
         .and_then(|name| name.to_str())
@@ -54,10 +49,7 @@ pub fn generate_template(path: &Path) -> anyhow::Result<()> {
     generate_project_file(path, &server_name, &server_jar, use_flags)?;
     generate_git_files(path)?;
 
-    logger::success(&format!(
-        "Project files generated at \"{}\"!",
-        path.display()
-    ));
+    log::info!("Project files generated at \"{}\"!", path.display());
     Ok(())
 }
 

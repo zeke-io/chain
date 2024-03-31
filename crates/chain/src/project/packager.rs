@@ -2,7 +2,6 @@ use crate::project;
 use crate::project::dependencies;
 use crate::project::manifests::{DependenciesManifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
-use crate::logger;
 use anyhow::Context;
 use std::fs::File;
 use std::io::{Read, Write};
@@ -25,7 +24,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     let settings = match project.get_settings(is_dev) {
         Ok(settings) => settings,
         Err(_) => {
-            logger::warn("No settings file was found, using default values...");
+            log::warn!("No settings file was found, using default values...");
             ProjectSettings::default()
         }
     };
@@ -36,7 +35,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         "Dependency manifest file was not found, make sure to run `chain install` first",
     )?;
 
-    logger::info("Preparing server files...");
+    log::info!("Preparing server files...");
     fs::create_dir_all(&server_directory)?;
 
     dependencies::prepare_server_dependencies(
@@ -55,7 +54,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     fs::copy(server_jar, server_directory.join(server_jar_name))
         .context("Could not copy server JAR file")?;
 
-    logger::info("Generating start scripts...");
+    log::info!("Generating start scripts...");
     let java_path = match env::var("JAVA_BIN_PATH") {
         Ok(value) => value,
         Err(_) => "java".into(),
@@ -67,13 +66,10 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         settings,
     )?;
 
-    logger::info("Generating ZIP file, this might take a while...");
+    log::info!("Generating ZIP file, this might take a while...");
     create_zip(out_directory.join("server.zip"), server_directory.as_path())?;
 
-    logger::success(&format!(
-        "Server ZIP file has been generated at \"{}\"!",
-        out_directory.join("server.zip").display()
-    ));
+    log::info!("Server ZIP file has been generated at \"{}\"!", out_directory.join("server.zip").display());
     Ok(())
 }
 

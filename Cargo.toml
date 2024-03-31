@@ -6,5 +6,6 @@ resolver = "2"
 anyhow = "1.0.81"
 clap = { version = "4.3.4", features = ["derive"] }
 cli = { path = "crates/cli" }
+log = "0.4"
 url = "2.4.0"
 utils = { path = "crates/utils" }

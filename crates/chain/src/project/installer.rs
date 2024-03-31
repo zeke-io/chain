@@ -1,4 +1,3 @@
-use crate::logger;
 use anyhow::{anyhow, Context};
 use std::fs;
 use std::fs::File;
@@ -12,14 +11,11 @@ pub(crate) async fn download_server(
     fs::create_dir_all(&target_directory)?;
 
     if utils::is_url(source) {
-        logger::info(&format!(
-            "Downloading server JAR file \"{}\"...",
-            utils::get_filename_from_url(source)
-        ));
+        log::info!("Downloading server JAR file \"{}\"...", utils::get_filename_from_url(source));
 
         Ok(download_file(source.into(), target_directory).await?)
     } else {
-        logger::info(&format!("Installing server JAR from \"{}\"...", source));
+        log::info!("Installing server JAR from \"{}\"...", source);
 
         let source_path = PathBuf::from(source);
         let file_name = Path::new(&source_path)

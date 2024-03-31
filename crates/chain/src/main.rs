@@ -1,4 +1,3 @@
-pub mod logger;
 pub mod project;
 pub mod template;
 
@@ -9,6 +8,9 @@ use crate::project::packager;
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
     let current_directory = std::env::current_dir()?;
+
+    // Initialize logger
+    colog::init();
 
     match cli.command {
         Commands::New { path } => template::generate_template(&current_directory.join(path)),
