@@ -1,3 +1,8 @@
 [workspace]
-members = ["crates/chain"]
+members = ["crates/chain", "crates/utils"]
 resolver = "2"
+
+[workspace.dependencies]
+anyhow = "1.0.81"
+url = "2.4.0"
+utils = { path = "crates/utils" }

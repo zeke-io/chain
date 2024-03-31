@@ -1,7 +1,8 @@
-use crate::util;
 use crate::logger;
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use std::fs;
+use std::fs::File;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
 pub(crate) async fn download_server(
@@ -10,13 +11,13 @@ pub(crate) async fn download_server(
 ) -> anyhow::Result<PathBuf> {
     fs::create_dir_all(&target_directory)?;
 
-    if util::url::is_url(source) {
+    if utils::is_url(source) {
         logger::info(&format!(
             "Downloading server JAR file \"{}\"...",
-            util::url::get_filename_from_url(source)
+            utils::get_filename_from_url(source)
         ));
 
-        Ok(util::url::download_file(source.into(), target_directory).await?)
+        Ok(download_file(source.into(), target_directory).await?)
     } else {
         logger::info(&format!("Installing server JAR from \"{}\"...", source));
 
@@ -31,3 +32,23 @@ pub(crate) async fn download_server(
         Ok(dest_path)
     }
 }
+
+pub async fn download_file(url: String, mut destination: PathBuf) -> anyhow::Result<PathBuf> {
+    let response = reqwest::get(&url).await?;
+
+    if !response.status().is_success() {
+        return Err(anyhow!("Could not download file from \"{}\".", &url));
+    }
+
+    if destination.is_dir() {
+        let filename: String = utils::get_filename_from_url(&url);
+        destination = destination.join(filename);
+    }
+
+    let mut file = File::create(&destination)?;
+    let content = response.bytes().await?;
+
+    file.write_all(&content)?;
+    Ok(destination)
+}
+

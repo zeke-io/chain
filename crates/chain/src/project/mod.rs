@@ -7,7 +7,6 @@ pub mod settings;
 use crate::project::dependencies::Dependency;
 use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
-use crate::util;
 use crate::logger;
 use anyhow::{anyhow, Context};
 use serde::{Deserialize, Serialize};
@@ -60,7 +59,7 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = path.as_ref();
     dotenv_flow::dotenv_flow().ok();
 
-    let chain_file = util::file::find_up_file(path, "chain.yml")
+    let chain_file = utils::find_up_file(path, "chain.yml")
         .context("Could not find \"chain.yml\" file, please create one")?;
     let path = chain_file.parent().unwrap();
 
@@ -106,7 +105,7 @@ pub fn process_files<P: AsRef<Path>>(
 ) -> anyhow::Result<()> {
     fn inner_file_processor(source_path: &PathBuf, target_path: &PathBuf) -> anyhow::Result<()> {
         // If the file is (most likely) a binary, just copy it
-        if util::file::is_binary(source_path)? {
+        if utils::is_binary(source_path)? {
             fs::copy(source_path, target_path).with_context(|| {
                 format!(
                     "Could not copy file \"{}\" to \"{}\"",

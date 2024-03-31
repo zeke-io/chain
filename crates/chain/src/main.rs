@@ -2,7 +2,6 @@ pub mod commands;
 pub mod logger;
 pub mod project;
 pub mod template;
-pub mod util;
 
 use crate::commands::{Cli, Commands};
 use crate::project::packager;
