@@ -1,4 +1,5 @@
-use clap::{Parser, Subcommand};
+pub use clap::Parser;
+use clap::Subcommand;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -10,23 +11,23 @@ pub struct Cli {
 
 #[derive(Subcommand)]
 pub enum Commands {
-    #[command(about = "Initialize a project with a basic template")]
+    /// Initialize a project with a basic template
     New { path: PathBuf },
-    #[command(about = "Install the files and plugins for a project")]
+    /// Install the files and plugins for a project
     Install {
         #[arg(short, long)]
         force: bool,
     },
-    #[command(about = "Add a plugin to the project")]
+    /// Add a plugin to the project
     Add { name: String },
-    #[command(about = "Run the server project")]
+    /// Run the server project
     Run {
         #[arg(short, long)]
         prod: bool,
         #[arg(long)]
         no_setup: bool,
     },
-    #[command(about = "Pack the server and its files")]
+    /// Pack the server and its files
     Pack {
         #[arg(long)]
         dev: bool,

@@ -1,16 +1,16 @@
-use crate::project;
-use crate::project::dependencies;
-use crate::project::manifests::{DependenciesManifest, VersionManifest};
-use crate::project::settings::ProjectSettings;
-use crate::util::logger;
-use anyhow::Context;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
+
+use anyhow::Context;
 use walkdir::WalkDir;
 use zip::write::FileOptions;
 use zip::ZipWriter;
+
+use crate::manifests::{DependenciesManifest, VersionManifest};
+use crate::settings::ProjectSettings;
+use crate::{dependencies, load_project, process_files};
 
 #[allow(unused_variables)]
 #[allow(unreachable_code)]
@@ -19,13 +19,13 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     let out_directory = root_directory.join("out");
     let server_directory = out_directory.join("server");
 
-    let project = project::load_project(root_directory)?;
+    let project = load_project(root_directory)?;
     let project_directory = &project.root_directory;
 
     let settings = match project.get_settings(is_dev) {
         Ok(settings) => settings,
         Err(_) => {
-            logger::warn("No settings file was found, using default values...");
+            log::warn!("No settings file was found, using default values...");
             ProjectSettings::default()
         }
     };
@@ -36,7 +36,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         "Dependency manifest file was not found, make sure to run `chain install` first",
     )?;
 
-    logger::info("Preparing server files...");
+    log::info!("Preparing server files...");
     fs::create_dir_all(&server_directory)?;
 
     dependencies::prepare_server_dependencies(
@@ -45,7 +45,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         &server_directory,
     )?;
 
-    project::process_files(project_directory, &server_directory, settings.clone())?;
+    process_files(project_directory, &server_directory, settings.clone())?;
 
     let server_jar = Path::new(&version.jar_file);
     let server_jar_name: &str = Path::new(&version.jar_file)
@@ -55,7 +55,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     fs::copy(server_jar, server_directory.join(server_jar_name))
         .context("Could not copy server JAR file")?;
 
-    logger::info("Generating start scripts...");
+    log::info!("Generating start scripts...");
     let java_path = match env::var("JAVA_BIN_PATH") {
         Ok(value) => value,
         Err(_) => "java".into(),
@@ -67,13 +67,13 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         settings,
     )?;
 
-    logger::info("Generating ZIP file, this might take a while...");
+    log::info!("Generating ZIP file, this might take a while...");
     create_zip(out_directory.join("server.zip"), server_directory.as_path())?;
 
-    logger::success(&format!(
+    log::info!(
         "Server ZIP file has been generated at \"{}\"!",
         out_directory.join("server.zip").display()
-    ));
+    );
     Ok(())
 }
 

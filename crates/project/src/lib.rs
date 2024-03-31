@@ -1,22 +1,22 @@
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::process::Stdio;
+use std::{env, fs};
+
+use anyhow::{anyhow, Context};
+use serde::{Deserialize, Serialize};
+use tokio::process::Command;
+use walkdir::WalkDir;
+
+use crate::dependencies::Dependency;
+use crate::manifests::{DependenciesManifest, Manifest, VersionManifest};
+use crate::settings::ProjectSettings;
+
 pub mod dependencies;
 mod installer;
 pub mod manifests;
 pub mod packager;
 pub mod settings;
-
-use crate::project::dependencies::Dependency;
-use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
-use crate::project::settings::ProjectSettings;
-use crate::util;
-use crate::util::logger;
-use anyhow::{anyhow, Context};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::process::Stdio;
-use std::{env, fs};
-use tokio::process::Command;
-use walkdir::WalkDir;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Server {
@@ -60,7 +60,7 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = path.as_ref();
     dotenv_flow::dotenv_flow().ok();
 
-    let chain_file = util::file::find_up_file(path, "chain.yml")
+    let chain_file = utils::find_up_file(path, "chain.yml")
         .context("Could not find \"chain.yml\" file, please create one")?;
     let path = chain_file.parent().unwrap();
 
@@ -106,7 +106,7 @@ pub fn process_files<P: AsRef<Path>>(
 ) -> anyhow::Result<()> {
     fn inner_file_processor(source_path: &PathBuf, target_path: &PathBuf) -> anyhow::Result<()> {
         // If the file is (most likely) a binary, just copy it
-        if util::file::is_binary(source_path)? {
+        if utils::is_binary(source_path)? {
             fs::copy(source_path, target_path).with_context(|| {
                 format!(
                     "Could not copy file \"{}\" to \"{}\"",
@@ -124,10 +124,11 @@ pub fn process_files<P: AsRef<Path>>(
             match env::var(var_name) {
                 Ok(value) => value,
                 Err(_) => {
-                    logger::warn(&format!(
+                    log::warn!(
                         "Could not find environment variable \"{}\", replacing it with an empty value.",
                         var_name
-                    ));
+                    );
+
                     "".into()
                 }
             }
@@ -190,7 +191,7 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
     let project_directory = &project.root_directory;
 
     let settings = project.get_settings(!prod).unwrap_or_else(|_| {
-        logger::warn("No settings file was found, using default values...");
+        log::warn!("No settings file was found, using default values...");
         ProjectSettings::default()
     });
     let version = project
@@ -223,12 +224,12 @@ pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow:
             settings.clone(),
         )?;
     } else {
-        logger::warn("Skipping setup, this is only recommended when running the server for the first time...");
+        log::warn!("Skipping setup, this is only recommended when running the server for the first time...");
     }
 
     let server_jar = PathBuf::from(version.jar_file);
 
-    logger::info("Running server...");
+    log::info!("Running server...");
 
     let java_path = env::var("JAVA_BIN_PATH").unwrap_or_else(|_| "java".into());
     let mut command = Command::new(java_path);
