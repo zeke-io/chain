@@ -1,15 +1,16 @@
-use crate::project;
-use crate::project::dependencies;
-use crate::project::manifests::{DependenciesManifest, VersionManifest};
-use crate::project::settings::ProjectSettings;
-use anyhow::Context;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::{Path, PathBuf};
 use std::{env, fs};
+
+use anyhow::Context;
 use walkdir::WalkDir;
 use zip::write::FileOptions;
 use zip::ZipWriter;
+
+use crate::manifests::{DependenciesManifest, VersionManifest};
+use crate::settings::ProjectSettings;
+use crate::{dependencies, load_project, process_files};
 
 #[allow(unused_variables)]
 #[allow(unreachable_code)]
@@ -18,7 +19,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     let out_directory = root_directory.join("out");
     let server_directory = out_directory.join("server");
 
-    let project = project::load_project(root_directory)?;
+    let project = load_project(root_directory)?;
     let project_directory = &project.root_directory;
 
     let settings = match project.get_settings(is_dev) {
@@ -44,7 +45,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
         &server_directory,
     )?;
 
-    project::process_files(project_directory, &server_directory, settings.clone())?;
+    process_files(project_directory, &server_directory, settings.clone())?;
 
     let server_jar = Path::new(&version.jar_file);
     let server_jar_name: &str = Path::new(&version.jar_file)

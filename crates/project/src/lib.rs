@@ -1,20 +1,22 @@
+use std::collections::HashMap;
+use std::path::{Path, PathBuf};
+use std::process::Stdio;
+use std::{env, fs};
+
+use anyhow::{anyhow, Context};
+use serde::{Deserialize, Serialize};
+use tokio::process::Command;
+use walkdir::WalkDir;
+
+use crate::dependencies::Dependency;
+use crate::manifests::{DependenciesManifest, Manifest, VersionManifest};
+use crate::settings::ProjectSettings;
+
 pub mod dependencies;
 mod installer;
 pub mod manifests;
 pub mod packager;
 pub mod settings;
-
-use crate::project::dependencies::Dependency;
-use crate::project::manifests::{DependenciesManifest, Manifest, VersionManifest};
-use crate::project::settings::ProjectSettings;
-use anyhow::{anyhow, Context};
-use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::path::{Path, PathBuf};
-use std::process::Stdio;
-use std::{env, fs};
-use tokio::process::Command;
-use walkdir::WalkDir;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Server {

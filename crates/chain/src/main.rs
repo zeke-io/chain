@@ -2,10 +2,6 @@ use anyhow::Context;
 
 use cli::{Cli, Commands, Parser};
 
-use crate::project::packager;
-
-pub mod project;
-
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
@@ -20,6 +16,6 @@ async fn main() -> anyhow::Result<()> {
         Commands::Install { force } => project::install(current_directory, force).await,
         Commands::Add { name } => project::add_dependency(current_directory, name).await,
         Commands::Run { prod, no_setup } => project::run(current_directory, prod, no_setup).await,
-        Commands::Pack { dev } => packager::pack_server(current_directory, dev),
+        Commands::Pack { dev } => project::packager::pack_server(current_directory, dev),
     }
 }
