@@ -1,6 +1,6 @@
 use crate::project::manifests::{DependenciesManifest, DependencyDetails, Manifest};
 use crate::util;
-use crate::util::logger;
+use crate::logger;
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;

@@ -1,4 +1,5 @@
 pub mod commands;
+pub mod logger;
 pub mod project;
 pub mod template;
 pub mod util;

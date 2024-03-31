@@ -1,5 +1,5 @@
 use crate::util;
-use crate::util::logger;
+use crate::logger;
 use anyhow::Context;
 use std::fs;
 use std::path::{Path, PathBuf};

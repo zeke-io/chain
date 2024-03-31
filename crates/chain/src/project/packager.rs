@@ -2,7 +2,7 @@ use crate::project;
 use crate::project::dependencies;
 use crate::project::manifests::{DependenciesManifest, VersionManifest};
 use crate::project::settings::ProjectSettings;
-use crate::util::logger;
+use crate::logger;
 use anyhow::Context;
 use std::fs::File;
 use std::io::{Read, Write};
