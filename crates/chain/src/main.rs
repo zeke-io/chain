@@ -1,8 +1,10 @@
-pub mod project;
-pub mod template;
+use anyhow::Context;
+
+use cli::{Cli, Commands, Parser};
 
 use crate::project::packager;
-use cli::{Cli, Commands, Parser};
+
+pub mod project;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -13,7 +15,8 @@ async fn main() -> anyhow::Result<()> {
     colog::init();
 
     match cli.command {
-        Commands::New { path } => template::generate_template(&current_directory.join(path)),
+        Commands::New { path } => templater::generate_template(current_directory.join(path))
+            .context("Generating template"),
         Commands::Install { force } => project::install(current_directory, force).await,
         Commands::Add { name } => project::add_dependency(current_directory, name).await,
         Commands::Run { prod, no_setup } => project::run(current_directory, prod, no_setup).await,
