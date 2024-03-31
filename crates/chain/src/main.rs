@@ -1,11 +1,9 @@
-pub mod commands;
 pub mod logger;
 pub mod project;
 pub mod template;
 
-use crate::commands::{Cli, Commands};
+use cli::{Cli, Commands, Parser};
 use crate::project::packager;
-use clap::Parser;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

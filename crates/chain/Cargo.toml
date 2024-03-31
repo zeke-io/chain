@@ -11,7 +11,7 @@ repository = "https://github.com/zeke-io/chain"
 
 [dependencies]
 anyhow.workspace = true
-clap = { version = "4.3.4", features = ["derive"] }
+cli.workspace = true
 crossterm = "0.26.1"
 dotenv-flow = "0.16.2"
 inquire = "0.6.2"

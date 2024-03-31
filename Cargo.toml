@@ -1,8 +1,10 @@
 [workspace]
-members = ["crates/chain", "crates/utils"]
+members = ["crates/chain", "crates/cli", "crates/utils"]
 resolver = "2"
 
 [workspace.dependencies]
 anyhow = "1.0.81"
+clap = { version = "4.3.4", features = ["derive"] }
+cli = { path = "crates/cli" }
 url = "2.4.0"
 utils = { path = "crates/utils" }
