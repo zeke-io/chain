@@ -1,3 +1,5 @@
+mod runtime;
+
 use anyhow::Context;
 
 use cli::{Cli, Commands, Parser};
@@ -22,6 +24,7 @@ async fn main() -> anyhow::Result<()> {
     if let Some(profile_name) = &profile_name {
         log::info!("Using profile: {}", profile_name);
         std::env::set_var("DOTENV_ENV", profile_name);
+        std::env::set_var("CHAIN_PROFILE", profile_name);
     }
 
     match cli.command {
@@ -29,7 +32,9 @@ async fn main() -> anyhow::Result<()> {
             .context("Generating template"),
         Commands::Install { force } => project::install(current_directory, force).await,
         Commands::Add { name } => project::add_dependency(current_directory, name).await,
-        Commands::Run { no_setup } => project::run(current_directory, profile_name, no_setup).await,
+        Commands::Run { no_setup } => {
+            runtime::run_project(current_directory, profile_name, no_setup).await
+        }
         Commands::Pack => project::packager::pack_server(current_directory, profile_name),
     }
 }
