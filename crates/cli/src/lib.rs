@@ -22,8 +22,8 @@ pub enum Commands {
         #[arg(short, long)]
         force: bool,
     },
-    /// Add a plugin to the project
-    Add { name: String },
+    /*/// Add a plugin to the project
+    Add { name: String },*/
     /// Run the server project
     Run {
         #[arg(long)]
