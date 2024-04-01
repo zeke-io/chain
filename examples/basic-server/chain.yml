@@ -1,7 +1,6 @@
 name: basic-server
 
 server:
-  source: https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/463/downloads/paper-1.20.4-463.jar
   brand: paper
   version: 1.20.4
 
