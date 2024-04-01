@@ -10,12 +10,20 @@ async fn main() -> anyhow::Result<()> {
     // Initialize logger
     colog::init();
 
+    let profile_name: Option<String> = match (cli.profile, &cli.command) {
+        // No matter the command, set the profile if provided
+        (Some(profile), _) => Some(profile),
+        // Set the profile as "dev" if no profile name is provided and the command is `run`
+        (None, Commands::Run { .. }) => Some("dev".into()),
+        // For any other command, if the profile is not provided, it will be None
+        (None, _) => None,
+    };
     match cli.command {
         Commands::New { path } => templater::generate_template(current_directory.join(path))
             .context("Generating template"),
         Commands::Install { force } => project::install(current_directory, force).await,
         Commands::Add { name } => project::add_dependency(current_directory, name).await,
-        Commands::Run { prod, no_setup } => project::run(current_directory, prod, no_setup).await,
-        Commands::Pack { dev } => project::packager::pack_server(current_directory, dev),
+        Commands::Run { no_setup } => project::run(current_directory, profile_name, no_setup).await,
+        Commands::Pack => project::packager::pack_server(current_directory, profile_name),
     }
 }

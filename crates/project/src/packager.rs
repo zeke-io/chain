@@ -14,7 +14,10 @@ use crate::{dependencies, load_project, process_files};
 
 #[allow(unused_variables)]
 #[allow(unreachable_code)]
-pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::Result<()> {
+pub fn pack_server<P: AsRef<Path>>(
+    root_directory: P,
+    profile_name: Option<String>,
+) -> anyhow::Result<()> {
     let root_directory = root_directory.as_ref();
     let out_directory = root_directory.join("out");
     let server_directory = out_directory.join("server");
@@ -22,7 +25,7 @@ pub fn pack_server<P: AsRef<Path>>(root_directory: P, is_dev: bool) -> anyhow::R
     let project = load_project(root_directory)?;
     let project_directory = &project.root_directory;
 
-    let settings = match project.get_settings(is_dev) {
+    let settings = match project.get_settings(profile_name) {
         Ok(settings) => settings,
         Err(_) => {
             log::warn!("No settings file was found, using default values...");

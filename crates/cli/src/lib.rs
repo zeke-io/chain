@@ -5,6 +5,9 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(name = "chain", bin_name = "chain", author, version, about)]
 pub struct Cli {
+    /// Profile name
+    pub profile: Option<String>,
+
     #[command(subcommand)]
     pub command: Commands,
 }
@@ -22,14 +25,9 @@ pub enum Commands {
     Add { name: String },
     /// Run the server project
     Run {
-        #[arg(short, long)]
-        prod: bool,
         #[arg(long)]
         no_setup: bool,
     },
     /// Pack the server and its files
-    Pack {
-        #[arg(long)]
-        dev: bool,
-    },
+    Pack,
 }

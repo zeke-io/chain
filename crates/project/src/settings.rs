@@ -17,7 +17,7 @@ pub struct ProjectSettings {
 
 pub(crate) fn load_settings<P: AsRef<Path>>(
     path: P,
-    is_dev: bool,
+    profile_name: Option<String>,
 ) -> anyhow::Result<ProjectSettings> {
     fn inner(path: PathBuf) -> anyhow::Result<ProjectSettings> {
         let settings_file =
@@ -33,8 +33,8 @@ pub(crate) fn load_settings<P: AsRef<Path>>(
 
     let path = path.as_ref();
 
-    if is_dev {
-        match inner(path.join("settings.dev.yml")) {
+    if let Some(profile_name) = profile_name {
+        match inner(path.join(format!("settings.{}.yml", profile_name))) {
             Ok(settings) => return Ok(settings),
             Err(err) => log::warn!("{}\nAttempting to load \"settings.yml\" file...", err),
         }
