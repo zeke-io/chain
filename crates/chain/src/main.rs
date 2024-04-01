@@ -18,6 +18,12 @@ async fn main() -> anyhow::Result<()> {
         // For any other command, if the profile is not provided, it will be None
         (None, _) => None,
     };
+
+    if let Some(profile_name) = &profile_name {
+        log::info!("Using profile: {}", profile_name);
+        std::env::set_var("DOTENV_ENV", profile_name);
+    }
+
     match cli.command {
         Commands::New { path } => templater::generate_template(current_directory.join(path))
             .context("Generating template"),

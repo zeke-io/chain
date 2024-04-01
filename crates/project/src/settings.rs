@@ -20,8 +20,10 @@ pub(crate) fn load_settings<P: AsRef<Path>>(
     profile_name: Option<String>,
 ) -> anyhow::Result<ProjectSettings> {
     fn inner(path: PathBuf) -> anyhow::Result<ProjectSettings> {
-        let settings_file =
-            fs::read_to_string(&path).context("Could not find settings file, please create one")?;
+        let settings_file = fs::read_to_string(&path).context(format!(
+            "Could not find settings file \"{}\"",
+            &path.display()
+        ))?;
 
         let settings: ProjectSettings = serde_yaml::from_str(&settings_file).context(format!(
             "The settings file at \"{}\" is invalid.",
