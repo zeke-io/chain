@@ -17,4 +17,6 @@ server-args:
 files:
   # The key is a path to a file/folder within the server directory,
   # And the value is a path to a file/folder relative to the root directory (where the chain.yml file is located)
-  'server.properties': "config/server.properties"
+  #
+  # Chain will also look for environment variable names in these files and replace them with their provided values
+  'server.properties': "src/server.properties"

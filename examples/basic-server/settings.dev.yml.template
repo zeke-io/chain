@@ -8,4 +8,4 @@ server-args:
 
 files:
   # Notice the '.dev' before the extension
-  'server.properties': "config/server.dev.properties"
+  'server.properties': "src/server.dev.properties"

@@ -1,6 +1,9 @@
 ### Chain
 .chain/
 
+# Local envs
+.env*.local
+
 # Settings
 settings.dev.yml
 

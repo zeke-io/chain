@@ -62,26 +62,29 @@ server-args:
   - "--nogui"
 
 files:
-  'server.properties': "config/server.properties"
+  'server.properties': "src/server.properties"
 ```
 
 Here is an explanation of all the properties:
 
 - #### `jvm-options`
-    An array of options that will be passed to the Java Virtual Machine.
+  An array of options that will be passed to the Java Virtual Machine.
 - #### `server-args`
-    An array of arguments that will be passed to the server jar.
+  An array of arguments that will be passed to the server jar.
 - #### `files`
-    A key/value map that defines what server files to create/override.
-    Both key and value are paths,the key *(target)* is a path within the server directory of the file/folder you want to replace,
-    and the value *(source)* is a path relative to the root directory of the file/folder you want to replace it with.
+  A key/value map that defines what server files to create/override.
+  Both key and value are paths,the key *(target)* is a path within the server directory of the file/folder you want to
+  replace,
+  and the value *(source)* is a path relative to the root directory of the file/folder you want to replace it with.
 
-    **If the target file does not exist, it will be copied, if it exists, it will be replaced.**
+  **If the target file does not exist, it will be copied, if it exists, it will be replaced.**
 
-It is recommended that you add the `settings.yml` file to your VCS, and create a duplicate of the settings file as `settings.dev.yml` (this file can be ignored by the VCS),
+It is recommended that you add the `settings.yml` file to your VCS, and create a duplicate of the settings file
+as `settings.dev.yml` (this file can be ignored by the VCS),
 this allows developers/admins to have different settings without having to modify the "production" settings.
 
-This is also useful if you have different config files for both production and development, as you can change the files in the `settings.dev.yml` file.
+This is also useful if you have different config files for both production and development, as you can change the files
+in the `settings.dev.yml` file.
 
 To run the server with your development settings, use:
 
@@ -103,4 +106,5 @@ By running the command, Chain will create an `out` directory,
 where it is going to place the server folder with all the files needed,
 and it will also generate a zip file with the contents.
 
-*Chain will also generate both `batch` (Windows) and `bash` (Linux/macOS) `start` scripts, and it will use your settings file to add the jvm options and server arguments.*
+*Chain will also generate both `batch` (Windows) and `bash` (Linux/macOS) `start` scripts, and it will use your settings
+file to add the jvm options and server arguments.*
