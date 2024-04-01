@@ -15,6 +15,13 @@ pub struct ProjectSettings {
     pub files: HashMap<String, String>,
 }
 
+impl ProjectSettings {
+    pub fn parse_to_bytes(&self) -> anyhow::Result<Vec<u8>> {
+        let buffer = serde_yaml::to_string(self)?;
+        Ok(buffer.into_bytes())
+    }
+}
+
 pub(crate) fn load_settings<P: AsRef<Path>>(
     path: P,
     profile_name: Option<String>,

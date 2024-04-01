@@ -4,6 +4,39 @@ use std::path::{Path, PathBuf};
 use std::{fs, io};
 
 use inquire::{Confirm, Text};
+use project::settings::ProjectSettings;
+
+const README_TEMPLATE: &str = r#"## Install
+```bash
+chain install
+```
+
+## Run the server
+```bash
+chain run
+```
+
+## Pack the server
+```bash
+chain pack
+```
+
+Powered by [Chain](https://github.com/zeke-io/chain)
+"#;
+
+const GIT_IGNORE_TEMPLATE: &str = r#"### Chain
+.chain/
+
+# Local envs
+.env*.local
+
+# Settings
+settings.dev.yml
+
+# Server
+server/
+out/
+"#;
 
 const AIKAR_FLAGS: &[&str] = &[
     "-Daikars.new.flags=true",
@@ -52,7 +85,6 @@ pub fn generate_template<P: AsRef<Path>>(path: P) -> anyhow::Result<()> {
 
     fs::create_dir_all(path)?;
     generate_project_file(path, &server_name, &server_jar, use_flags)?;
-    generate_git_files(path)?;
 
     log::info!("Project files generated at \"{}\"!", path.display());
     Ok(())
@@ -67,8 +99,8 @@ fn generate_project_file(
     directory: &Path,
     server_name: &str,
     server_jar: &str,
-    _use_aikar_flags: bool,
-) -> io::Result<()> {
+    use_aikar_flags: bool,
+) -> anyhow::Result<()> {
     let chain = r#"name: {name}
 
 server:
@@ -80,8 +112,7 @@ server:
     .replace("{source}", server_jar);
     generate_file(chain.as_bytes(), directory.join("chain.yml"))?;
 
-    // TODO: Generate settings file
-    /*let mut settings: ProjectSettings = ProjectSettings {
+    let mut settings: ProjectSettings = ProjectSettings {
         jvm_options: vec!["-Dfile.encoding=UTF-8".to_string(), "-Xmx4G".to_string()],
         server_args: vec!["--nogui".to_string()],
         files: Default::default(),
@@ -92,44 +123,9 @@ server:
             .extend(AIKAR_FLAGS.iter().map(|&s| s.to_string()));
     }
 
-    let settings = serde_yaml::to_string(&settings)?;*/
-    // generate_file(settings.as_bytes(), directory.join("settings.yml"))?;
-    Ok(())
-}
-
-fn generate_git_files(directory: &Path) -> io::Result<()> {
-    let git_ignore = r#"### Chain
-.chain/
-
-# Settings
-settings.dev.yml
-
-# Server
-server/
-out/
-
-# Env files
-.env*.local
-"#;
-    generate_file(git_ignore.as_bytes(), directory.join(".gitignore"))?;
-
-    let readme = r#"## Install
-```bash
-chain install
-```
-
-## Run the server (dev)
-```bash
-chain run
-```
-
-## Pack the server
-```bash
-chain pack
-```
-
-Powered by [Chain](https://github.com/zeke-io/chain)
-"#;
-    generate_file(readme.as_bytes(), directory.join("README.md"))?;
+    generate_file(&settings.parse_to_bytes()?, directory.join("settings.yml"))?;
+    generate_file(GIT_IGNORE_TEMPLATE.as_bytes(), directory.join(".gitignore"))?;
+    generate_file(README_TEMPLATE.as_bytes(), directory.join("README.md"))?;
+    fs::create_dir(directory.join("src")).ok();
     Ok(())
 }
