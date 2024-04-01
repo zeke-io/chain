@@ -1,10 +1,10 @@
 name: basic-server
 
 server:
-  source: https://api.papermc.io/v2/projects/paper/versions/1.20.1/builds/98/downloads/paper-1.20.1-98.jar
+  source: https://api.papermc.io/v2/projects/paper/versions/1.20.4/builds/463/downloads/paper-1.20.4-463.jar
   brand: paper
-  version: 1.20.1
+  version: 1.20.4
 
 dependencies:
   spark:
-    source: https://ci.lucko.me/job/spark/384/artifact/spark-bukkit/build/libs/spark-1.10.43-bukkit.jar
+    source: https://ci.lucko.me/job/spark/lastSuccessfulBuild/artifact/spark-bukkit/build/libs/spark-1.10.60-bukkit.jar
