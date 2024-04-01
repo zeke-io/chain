@@ -2,6 +2,8 @@ use anyhow::Context;
 use project::manifests::{DependenciesManifest, VersionManifest};
 use project::settings::ProjectSettings;
 use project::{dependencies, load_project, process_files};
+use std::ffi::OsString;
+use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::process::Stdio;
 use std::{env, fs};
@@ -34,6 +36,7 @@ pub async fn run_project(
     } else {
         prepare_files(&root_directory, &server_directory, dependencies, &settings)?;
     }
+
     run_server(&server_directory, version.jar_file, settings).await
 }
 
@@ -59,7 +62,11 @@ async fn run_server<T: AsRef<Path>, U: AsRef<Path>>(
     settings: ProjectSettings,
 ) -> anyhow::Result<()> {
     log::info!("Running server...");
-    let java = env::var("JAVA_BIN").unwrap_or_else(|_| "java".into());
+    let java: OsString = match (env::var("JAVA_BIN").ok(), env::var("JAVA_HOME").ok()) {
+        (Some(java_bin), _) => PathBuf::from(java_bin).into(),
+        (None, Some(java_home)) => PathBuf::from(java_home).join("bin/java").into(),
+        (None, None) => "java".into(),
+    };
     let mut command = Command::new(java);
     command.kill_on_drop(true);
     command.current_dir(server_directory.as_ref());
@@ -75,18 +82,35 @@ async fn run_server<T: AsRef<Path>, U: AsRef<Path>>(
         command.arg(arg);
     }
 
-    let mut child = command
+    let child = command
         .stdin(Stdio::inherit())
         .stdout(Stdio::inherit())
         .stderr(Stdio::inherit())
-        .spawn()?;
+        .spawn();
 
-    let _ = tokio::signal::ctrl_c().await;
-    child.kill().await.expect("Failed to kill child process");
-    child
-        .wait()
-        .await
-        .expect("Failed to wait for child process");
+    match child {
+        Ok(mut child) => {
+            child
+                .wait()
+                .await
+                .expect("Failed to wait for child process");
+            // TODO: Doing CTRL+C will make the server gracefully shutdown but chain will quit immediately,
+            //       so this warning is not printed at all unless if the server is stopped without signals (eg. the `stop` command)
+            log::warn!("The server has been stopped!")
+        }
+        Err(err) => match err.kind() {
+            ErrorKind::NotFound => {
+                log::error!("Could not run server because java was not found!");
+                log::warn!("Make sure java is set in your PATH environment variable and you can use it directly from your terminal,\nor set the path to the JRE in your .env file using the \"JAVA_BIN\" variable.");
+            }
+            _ => {
+                log::error!(
+                    "Could not run server because of an unknown error! ({})",
+                    err.kind()
+                );
+            }
+        },
+    }
 
     Ok(())
 }
