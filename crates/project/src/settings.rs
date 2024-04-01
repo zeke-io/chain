@@ -15,13 +15,22 @@ pub struct ProjectSettings {
     pub files: HashMap<String, String>,
 }
 
+impl ProjectSettings {
+    pub fn parse_to_bytes(&self) -> anyhow::Result<Vec<u8>> {
+        let buffer = serde_yaml::to_string(self)?;
+        Ok(buffer.into_bytes())
+    }
+}
+
 pub(crate) fn load_settings<P: AsRef<Path>>(
     path: P,
-    is_dev: bool,
+    profile_name: Option<String>,
 ) -> anyhow::Result<ProjectSettings> {
     fn inner(path: PathBuf) -> anyhow::Result<ProjectSettings> {
-        let settings_file =
-            fs::read_to_string(&path).context("Could not find settings file, please create one")?;
+        let settings_file = fs::read_to_string(&path).context(format!(
+            "Could not find settings file \"{}\"",
+            &path.display()
+        ))?;
 
         let settings: ProjectSettings = serde_yaml::from_str(&settings_file).context(format!(
             "The settings file at \"{}\" is invalid.",
@@ -33,8 +42,8 @@ pub(crate) fn load_settings<P: AsRef<Path>>(
 
     let path = path.as_ref();
 
-    if is_dev {
-        match inner(path.join("settings.dev.yml")) {
+    if let Some(profile_name) = profile_name {
+        match inner(path.join(format!("settings.{}.yml", profile_name))) {
             Ok(settings) => return Ok(settings),
             Err(err) => log::warn!("{}\nAttempting to load \"settings.yml\" file...", err),
         }

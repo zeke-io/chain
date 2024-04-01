@@ -47,8 +47,8 @@ impl Project {
         }
     }
 
-    pub fn get_settings(&self, is_dev: bool) -> anyhow::Result<ProjectSettings> {
-        settings::load_settings(&self.root_directory, is_dev)
+    pub fn get_settings(&self, profile_name: Option<String>) -> anyhow::Result<ProjectSettings> {
+        settings::load_settings(&self.root_directory, profile_name)
     }
 
     pub fn get_manifest<T: Manifest>(&self) -> anyhow::Result<T::ManifestType> {
@@ -186,11 +186,15 @@ pub fn process_files<P: AsRef<Path>>(
 }
 
 /// Prepares the server files and runs the server jar
-pub async fn run(root_directory: PathBuf, prod: bool, no_setup: bool) -> anyhow::Result<()> {
+pub async fn run(
+    root_directory: PathBuf,
+    profile_name: Option<String>,
+    no_setup: bool,
+) -> anyhow::Result<()> {
     let project = load_project(root_directory)?;
     let project_directory = &project.root_directory;
 
-    let settings = project.get_settings(!prod).unwrap_or_else(|_| {
+    let settings = project.get_settings(profile_name).unwrap_or_else(|_| {
         log::warn!("No settings file was found, using default values...");
         ProjectSettings::default()
     });

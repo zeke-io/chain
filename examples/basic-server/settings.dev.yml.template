@@ -1,5 +1,4 @@
-java-runtime: "/path/to/java"
-
+# You have to remove the .template extension to use this file
 jvm-options:
   - "-Dfile.encoding=UTF-8"
   - "-Xmx3G"
@@ -9,4 +8,4 @@ server-args:
 
 files:
   # Notice the '.dev' before the extension
-  'server.properties': "config/server.dev.properties"
+  'server.properties': "src/server.dev.properties"
