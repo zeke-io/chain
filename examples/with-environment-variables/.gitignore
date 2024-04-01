@@ -1,9 +1,0 @@
-### Chain
-.chain/
-
-# Settings
-settings.dev.yml
-
-# Server
-server/
-out/
