@@ -495,9 +495,11 @@ name = "fetcher"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "log",
  "reqwest",
  "serde",
  "serde_json",
+ "utils",
 ]
 
 [[package]]
@@ -1117,6 +1119,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "dotenv-flow",
+ "fetcher",
  "log",
  "regex",
  "reqwest",

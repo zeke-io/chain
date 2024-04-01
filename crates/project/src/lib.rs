@@ -13,7 +13,6 @@ use crate::manifests::{DependenciesManifest, Manifest, VersionManifest};
 use crate::settings::ProjectSettings;
 
 pub mod dependencies;
-mod installer;
 pub mod manifests;
 pub mod packager;
 pub mod settings;
@@ -77,7 +76,7 @@ pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()
     let project = load_project(root_directory)?;
     let server = &project.project_details.server;
 
-    let server_jar_path = installer::download_server(
+    let server_jar_path = fetcher::fetch_server(
         &server.source,
         project.root_directory.join(".chain").join("versions"),
     )

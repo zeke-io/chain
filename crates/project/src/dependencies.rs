@@ -5,7 +5,6 @@ use std::path::{Path, PathBuf};
 use anyhow::anyhow;
 use serde::{Deserialize, Serialize};
 
-use crate::installer;
 use crate::manifests::{DependenciesManifest, DependencyDetails, Manifest};
 
 // Workaround for https://github.com/serde-rs/serde/issues/368
@@ -103,7 +102,7 @@ async fn install_from_source(
 
         let destination_file = destination.join(filename);
         fs::create_dir_all(destination_file.parent().unwrap())?;
-        installer::download_file(source.into(), destination_file).await?
+        fetcher::download_file(source.into(), destination_file).await?
     } else {
         log::info!("Installing \"{}\" from \"{}\"...", id, source);
         let source = PathBuf::from(source);
