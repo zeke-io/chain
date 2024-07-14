@@ -2,7 +2,7 @@
 
 ## Windows
 
-You can find an installer for each version in [Releases](https://github.com/zeke-io/chain/releases). 
+You can find an installer for each version in [Releases](https://github.com/zeke-io/crafty/releases).
 
 ## Manual Installation (from source)
 
@@ -17,7 +17,7 @@ You can find an installer for each version in [Releases](https://github.com/zeke
 1. Clone the repository
 2. Open a terminal inside the cloned repository
     ```bash
-    cd chain
+    cd crafty
     ```
 3. Build the project
     ```bash
@@ -28,12 +28,13 @@ You can find the binaries at `target/release`.
 
 ### Build the installer (Windows)
 
-To build the Chain installer for Windows, you need to run:
+To build the Crafty installer for Windows, you need to run:
 
 ```bash
 cargo wix
 ```
 
-*If wix is not in your system's PATH, you can add the `-b` argument followed by the path to the `bin` folder where `wix` and `candle` are located.*
+*If wix is not in your system's PATH, you can add the `-b` argument followed by the path to the `bin` folder where `wix`
+and `candle` are located.*
 
 You can find the installer at `target/wix`.

@@ -1,9 +1,9 @@
 # Basic Server
 
-This example shows the basics of Chain.
+This example shows the basics of Crafty.
 
 It uses [Paper](https://github.com/PaperMC/Paper) 1.20.1, and it has the [spark](https://github.com/lucko/spark) plugin
-defined in the `chain.yml` file.
+defined in the `crafty.yml` file.
 
 Inside the `src` folder there are two versions of the server's `server.properties` file with different values.
 
@@ -15,7 +15,7 @@ When running the server, one of these will be copied and used by the server, dep
 2. Install the server and its plugins with:
 
 ```bash
-chain install
+crafty install
 ```
 
 ## Run the server
@@ -23,11 +23,11 @@ chain install
 You can run the server using the development settings `settings.dev.yml` with:
 
 ```bash
-chain run
+crafty run
 ```
 
 If you don't want to load the development settings, you can set the profile name with the `--profile` argument.
 
 ```bash
-chain --profile=prod run
+crafty --profile=prod run
 ```

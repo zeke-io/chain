@@ -2,7 +2,7 @@ blank_issues_enabled: true
 contact_links:
   - name: Do you need help or have a question?
     about: You can ask questions in the "Help / Q&A" category in GitHub Discussions
-    url: https://github.com/zeke-io/chain/discussions/categories/help-q-a
+    url: https://github.com/zeke-io/crafty/discussions/categories/help-q-a
   - name: Feature requests
     about: Find or create feature requests in the "Ideas" category in GitHub Discussions
-    url: https://github.com/zeke-io/chain/discussions/categories/ideas
+    url: https://github.com/zeke-io/crafty/discussions/categories/ideas

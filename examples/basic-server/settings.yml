@@ -1,4 +1,4 @@
-# This is the settings file, used when running the server with `chain run`,
+# This is the settings file, used when running the server with `crafty run`,
 # Here you can define the jvm options, server args, and files to copy/override.
 # This file can also be duplicated as 'settings.dev.yml', and have different values,
 # Useful for values or files only meant for different environments
@@ -16,7 +16,7 @@ server-args:
 # Like server or plugin config files (Optional)
 files:
   # The key is a path to a file/folder within the server directory,
-  # And the value is a path to a file/folder relative to the root directory (where the chain.yml file is located)
+  # And the value is a path to a file/folder relative to the root directory (where the crafty.yml file is located)
   #
-  # Chain will also look for environment variable names in these files and replace them with their provided values
+  # Crafty will also look for environment variable names in these files and replace them with their provided values
   'server.properties': "src/server.properties"
