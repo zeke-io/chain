@@ -11,7 +11,10 @@ async fn main() -> anyhow::Result<()> {
     let current_directory = std::env::current_dir()?;
 
     // Initialize logger
-    colog::init();
+    if std::env::var_os("CRAFTY_LOG").is_none() {
+        std::env::set_var("CRAFTY_LOG", "info")
+    }
+    pretty_env_logger::init_custom_env("CRAFTY_LOG");
 
     let profile_name: Option<String> = match (cli.profile, &cli.command) {
         // No matter the command, set the profile if provided
