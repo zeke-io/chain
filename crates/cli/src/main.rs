@@ -31,6 +31,7 @@ async fn main() -> anyhow::Result<()> {
     match cli.command {
         Commands::New { path } => templater::generate_template(current_directory.join(path))
             .context("Generating template"),
+        Commands::Init => templater::generate_template(current_directory),
         Commands::Install { force } => project::install(current_directory, force).await,
         // Commands::Add { name } => project::add_dependency(current_directory, name).await,
         Commands::Run { no_setup } => {

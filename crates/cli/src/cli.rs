@@ -16,7 +16,10 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// Initialize a project with a basic template
-    New { path: PathBuf },
+    New {
+        path: PathBuf,
+    },
+    Init,
     /// Install the files and plugins for a project
     Install {
         #[arg(short, long)]
