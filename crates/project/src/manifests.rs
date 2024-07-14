@@ -37,7 +37,7 @@ impl Manifest for VersionManifest {
     type ManifestType = VersionManifest;
 
     fn load_manifest(project_directory: &Path) -> anyhow::Result<Self::ManifestType> {
-        let data_directory = project_directory.join(".chain");
+        let data_directory = project_directory.join(".crafty");
         let contents = fs::read_to_string(data_directory.join("version.yml"))
             .context("Could not find version manifest file")?;
 
@@ -73,7 +73,7 @@ impl Manifest for DependenciesManifest {
     type ManifestType = DependenciesManifest;
 
     fn load_manifest(project_directory: &Path) -> anyhow::Result<Self::ManifestType> {
-        let data_directory = project_directory.join(".chain");
+        let data_directory = project_directory.join(".crafty");
         let contents = fs::read_to_string(data_directory.join("dependencies.yml"))
             .context("Could not find dependencies manifest file")?;
 

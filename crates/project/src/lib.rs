@@ -60,13 +60,13 @@ pub fn load_project<P: AsRef<Path>>(path: P) -> anyhow::Result<Project> {
     let path = path.as_ref();
     dotenv_flow::dotenv_flow().ok();
 
-    let chain_file = utils::find_up_file(path, "chain.yml")
-        .context("Could not find \"chain.yml\" file, please create one")?;
-    let path = chain_file.parent().unwrap();
+    let crafty_file = utils::find_up_file(path, "crafty.yml")
+        .context("Could not find \"crafty.yml\" file, please create one")?;
+    let path = crafty_file.parent().unwrap();
 
-    let details_file = fs::read_to_string(&chain_file)?;
+    let details_file = fs::read_to_string(&crafty_file)?;
     let details: ProjectMetadata = serde_yaml::from_str(&details_file)
-        .with_context(|| "The file \"chain.yml\" is invalid.")?;
+        .with_context(|| "The file \"crafty.yml\" is invalid.")?;
 
     let project = Project::new(path, details);
 
@@ -79,12 +79,12 @@ pub async fn install(root_directory: PathBuf, _force: bool) -> anyhow::Result<()
 
     let server_jar_path = installer::download_server(
         &server.source,
-        project.root_directory.join(".chain").join("versions"),
+        project.root_directory.join(".crafty").join("versions"),
     )
     .await?;
 
     let version_manifest = VersionManifest::new(&server.source, server_jar_path);
-    version_manifest.save_manifest(&project.root_directory.join(".chain").join("version.yml"))?;
+    version_manifest.save_manifest(&project.root_directory.join(".crafty").join("version.yml"))?;
 
     dependencies::install_dependencies(
         &project.project_details.dependencies,
@@ -118,7 +118,7 @@ pub fn process_files<P: AsRef<Path>>(
         }
 
         let input = fs::read_to_string(source_path)?;
-        let reg_exp = regex::Regex::new(r"\$(CHAIN_[A-Z_0-9]*)")?;
+        let reg_exp = regex::Regex::new(r"\$(CRAFTY_[A-Z_0-9]*)")?;
         let output = reg_exp.replace_all(&input, |caps: &regex::Captures<'_>| {
             let var_name = &caps[1];
             match env::var(var_name) {

@@ -52,7 +52,7 @@ pub async fn install_dependencies(
             let file = match install_from_source(
                 id,
                 source,
-                root_directory.join(".chain").join("dependencies"),
+                root_directory.join(".crafty").join("dependencies"),
             )
             .await
             {
@@ -83,7 +83,7 @@ pub async fn install_dependencies(
     }
 
     let manifest = DependenciesManifest::new(installed_dependencies);
-    manifest.save_manifest(&root_directory.join(".chain").join("dependencies.yml"))?;
+    manifest.save_manifest(&root_directory.join(".crafty").join("dependencies.yml"))?;
     Ok(())
 }
 
@@ -161,7 +161,7 @@ pub fn prepare_server_dependencies(
             let file_path = dependencies_directory.join(file.filename);
             if !file_path.exists() {
                 return Err(anyhow!(
-                    "Dependency \"{}\" was not found, make sure to run `chain install` first",
+                    "Dependency \"{}\" was not found, make sure to run `crafty install` first",
                     id
                 ));
             }

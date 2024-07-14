@@ -25,7 +25,7 @@ async fn main() -> anyhow::Result<()> {
     if let Some(profile_name) = &profile_name {
         log::info!("Using profile: {}", profile_name);
         std::env::set_var("DOTENV_ENV", profile_name);
-        std::env::set_var("CHAIN_PROFILE", profile_name);
+        std::env::set_var("CRAFTY_PROFILE", profile_name);
     }
 
     match cli.command {

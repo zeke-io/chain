@@ -61,7 +61,7 @@
 
     <Product
         Id='FF60BF29-2EAE-4670-BF12-735BA7CD24F4'
-        Name='Chain'
+        Name='Crafty'
         UpgradeCode='9FC8122B-AD8A-4B9A-A29A-763FE371E404'
         Manufacturer='Zeke'
         Language='1033'
@@ -83,11 +83,11 @@
             DowngradeErrorMessage='A newer version of [ProductName] is already installed. Setup will now exit.' />
 
         <Media Id='1' Cabinet='media1.cab' EmbedCab='yes' DiskPrompt='CD-ROM #1' />
-        <Property Id='DiskPrompt' Value='Chain Installation'/>
+        <Property Id='DiskPrompt' Value='Crafty Installation'/>
 
         <Directory Id='TARGETDIR' Name='SourceDir'>
             <Directory Id='$(var.PlatformProgramFilesFolder)' Name='PFiles'>
-                <Directory Id='APPLICATIONFOLDER' Name='Chain'>
+                <Directory Id='APPLICATIONFOLDER' Name='Crafty'>
                     <!--
                       Disabling the license sidecar file in the installer is a two step process:
 
@@ -114,20 +114,20 @@
                                 Action='set'
                                 System='yes' />
                         </Component>
-                        <Component Id='chain_bin' Guid='*'>
+                        <Component Id='crafty_bin' Guid='*'>
                             <File
-                                Id='chain_exe'
-                                Name='chain.exe'
+                                Id='crafty_exe'
+                                Name='crafty.exe'
                                 DiskId='1'
-                                Source='$(var.CargoTargetBinDir)/chain.exe'
+                                Source='$(var.CargoTargetBinDir)/crafty.exe'
                                 KeyPath='yes' />
                         </Component>
-                        <Component Id='chainr_bin' Guid='*'>
+                        <Component Id='craftyr_bin' Guid='*'>
                             <File
-                                Id='chainr_exe'
-                                Name='chainr.exe'
+                                Id='craftyr_exe'
+                                Name='craftyr.exe'
                                 DiskId='1'
-                                Source='$(var.CargoTargetBinDir)/chainr.exe'
+                                Source='$(var.CargoTargetBinDir)/craftyr.exe'
                                 KeyPath='yes' />
                         </Component>
                     </Directory>
@@ -150,8 +150,8 @@
             -->
             <ComponentRef Id='License' />
             
-            <ComponentRef Id='chain_bin' />
-            <ComponentRef Id='chainr_bin' />
+            <ComponentRef Id='crafty_bin' />
+            <ComponentRef Id='craftyr_bin' />
 
             <Feature
                 Id='Environment'
@@ -174,7 +174,7 @@
         <!--<Icon Id='ProductICO' SourceFile='wix\Product.ico'/>-->
         <!--<Property Id='ARPPRODUCTICON' Value='ProductICO' />-->
 
-        <Property Id='ARPHELPLINK' Value='https://github.com/zeke-io/chain' />
+        <Property Id='ARPHELPLINK' Value='https://github.com/zeke-io/crafty' />
         
         <UI>
             <UIRef Id='WixUI_FeatureTree' />

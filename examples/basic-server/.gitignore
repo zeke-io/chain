@@ -1,5 +1,5 @@
-### Chain
-.chain/
+### Crafty
+.crafty/
 
 # Local envs
 .env*.local

@@ -5,8 +5,8 @@
 To begin, run the `new` command:
 
 ```bash
-# chain new <path>
-chain new my_server
+# crafty new <path>
+crafty new my_server
 ```
 
 The `new` command will prompt you with some questions and create a directory for your project.
@@ -14,23 +14,23 @@ The `new` command will prompt you with some questions and create a directory for
 If you provided a source url for the server jar file, you can download it with the `install` command:
 
 ```bash
-chain install
+crafty install
 ```
 
 Once it is done, it is recommended to run the server once to generate its files:
 
 ```bash
-chain run --no-setup
+crafty run --no-setup
 ```
 
 *The `--no-setup` argument skips setup, only recommended when running the server for the first time to generate files.*
 
-*Chain cannot detect if the server is done setting up, so you have to stop the server manually.*
+*Crafty cannot detect if the server is done setting up, so you have to stop the server manually.*
 
 ## Adding server plugins
 
 If you are using a server brand that supports plugins (Spigot, Paper, etc.),
-you can add plugins in the `chain.yml` file.
+you can add plugins in the `crafty.yml` file.
 
 As an example, we will install the [spark](https://github.com/lucko/spark) plugin.
 
@@ -89,7 +89,7 @@ in the `settings.dev.yml` file.
 To run the server with your development settings, use:
 
 ```bash
-chain run
+crafty run
 ```
 
 If the settings file `settings.dev.yml` does not exists, it will load the default `settings.yml` file.
@@ -99,12 +99,13 @@ If the settings file `settings.dev.yml` does not exists, it will load the defaul
 You can package the files, plugins, and the server jar into a zip file by running the command:
 
 ```bash
-chain pack
+crafty pack
 ```
 
-By running the command, Chain will create an `out` directory,
+By running the command, Crafty will create an `out` directory,
 where it is going to place the server folder with all the files needed,
 and it will also generate a zip file with the contents.
 
-*Chain will also generate both `batch` (Windows) and `bash` (Linux/macOS) `start` scripts, and it will use your settings
+*Crafty will also generate both `batch` (Windows) and `bash` (Linux/macOS) `start` scripts, and it will use your
+settings
 file to add the jvm options and server arguments.*

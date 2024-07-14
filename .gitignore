@@ -6,7 +6,7 @@
 .vscode
 
 # Examples
-examples/**/.chain
+examples/**/.crafty
 examples/**/settings.dev.yml
 examples/**/server
 examples/**/out

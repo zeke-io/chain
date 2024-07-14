@@ -22,11 +22,11 @@ pub async fn run_project(
 
     let version = project
         .get_manifest::<VersionManifest>()
-        .context("Version manifest file was not found, make sure to run `chain install` first")?;
+        .context("Version manifest file was not found, make sure to run `crafty install` first")?;
 
     let dependencies = project
         .get_manifest::<DependenciesManifest>()
-        .context("Dependency manifest was not found, make sure to run `chain install` first")?;
+        .context("Dependency manifest was not found, make sure to run `crafty install` first")?;
 
     let server_directory = root_directory.join("server");
     fs::create_dir_all(&server_directory)?;
@@ -48,7 +48,7 @@ fn prepare_files(
 ) -> anyhow::Result<()> {
     dependencies::prepare_server_dependencies(
         dependencies,
-        &root_directory.join(".chain").join("dependencies"),
+        &root_directory.join(".crafty").join("dependencies"),
         &server_directory,
     )?;
 
@@ -94,7 +94,7 @@ async fn run_server<T: AsRef<Path>, U: AsRef<Path>>(
                 .wait()
                 .await
                 .expect("Failed to wait for child process");
-            // TODO: Doing CTRL+C will make the server gracefully shutdown but chain will quit immediately,
+            // TODO: Doing CTRL+C will make the server gracefully shutdown but crafty will quit immediately,
             //       so this warning is not printed at all unless if the server is stopped without signals (eg. the `stop` command)
             log::warn!("The server has been stopped!")
         }

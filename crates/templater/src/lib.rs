@@ -8,24 +8,24 @@ use project::settings::ProjectSettings;
 
 const README_TEMPLATE: &str = r#"## Install
 ```bash
-chain install
+crafty install
 ```
 
 ## Run the server
 ```bash
-chain run
+crafty run
 ```
 
 ## Pack the server
 ```bash
-chain pack
+crafty pack
 ```
 
-Powered by [Chain](https://github.com/zeke-io/chain)
+Powered by [Crafty](https://github.com/zeke-io/crafty)
 "#;
 
-const GIT_IGNORE_TEMPLATE: &str = r#"### Chain
-.chain/
+const GIT_IGNORE_TEMPLATE: &str = r#"### Crafty
+.crafty/
 
 # Local envs
 .env*.local
@@ -101,7 +101,7 @@ fn generate_project_file(
     server_jar: &str,
     use_aikar_flags: bool,
 ) -> anyhow::Result<()> {
-    let chain = r#"name: {name}
+    let crafty = r#"name: {name}
 
 server:
   source: {source}
@@ -110,7 +110,7 @@ server:
 "#
     .replace("{name}", server_name)
     .replace("{source}", server_jar);
-    generate_file(chain.as_bytes(), directory.join("chain.yml"))?;
+    generate_file(crafty.as_bytes(), directory.join("crafty.yml"))?;
 
     let mut settings: ProjectSettings = ProjectSettings {
         jvm_options: vec!["-Dfile.encoding=UTF-8".to_string(), "-Xmx4G".to_string()],
