@@ -1,16 +1,14 @@
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use std::process::Stdio;
 use std::{env, fs};
 
-use anyhow::{anyhow, Context};
-use serde::{Deserialize, Serialize};
-use tokio::process::Command;
-use walkdir::WalkDir;
-
 use crate::dependencies::Dependency;
-use crate::manifests::{DependenciesManifest, Manifest, VersionManifest};
+use crate::manifests::{Manifest, VersionManifest};
 use crate::settings::ProjectSettings;
+use anyhow::{anyhow, Context};
+use common::utils;
+use serde::{Deserialize, Serialize};
+use walkdir::WalkDir;
 
 pub mod dependencies;
 mod installer;

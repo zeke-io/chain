@@ -1,4 +1,5 @@
 use std::fs::File;
+use std::io;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
@@ -60,7 +61,7 @@ pub fn find_up_file(path: &Path, file_name: &str) -> Option<PathBuf> {
 /// * `Ok(true)` - If the file is likely binary.
 /// * `Ok(false)` - If the file is likely not binary (i.e., it's probably a text file).
 /// * `Err(io::Error)` - If there's an error reading the file.
-pub fn is_binary<P: AsRef<Path>>(file_path: P) -> anyhow::Result<bool> {
+pub fn is_binary<P: AsRef<Path>>(file_path: P) -> Result<bool, io::Error> {
     const BUFFER_SIZE: usize = 256;
     let mut buffer = [0; BUFFER_SIZE];
     let mut file = File::open(file_path)?;

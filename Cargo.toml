@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/cli", "crates/common", "crates/project", "crates/templater", "crates/utils"]
+members = ["crates/cli", "crates/common", "crates/project", "crates/templater"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -12,4 +12,3 @@ project = { path = "crates/project" }
 serde = { version = "1.0.197", features = ["derive"] }
 templater = { path = "crates/templater" }
 url = "2.4.0"
-utils = { path = "crates/utils" }
