@@ -270,6 +270,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "acbf1af155f9b9ef647e42cdc158db4b64a1b61f743629225fde6f3e0be2a7c7"
 
 [[package]]
+name = "common"
+version = "0.1.0"
+
+[[package]]
 name = "constant_time_eq"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1063,6 +1067,7 @@ name = "project"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "common",
  "dotenv-flow",
  "log",
  "regex",
