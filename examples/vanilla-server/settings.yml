@@ -1,0 +1,10 @@
+jvm-options:
+  - -Dfile.encoding=UTF-8
+  - -Xms1024M
+  - -Xmx1024M
+
+server-args:
+  - nogui
+
+files:
+  'server.properties': 'src/server.properties'

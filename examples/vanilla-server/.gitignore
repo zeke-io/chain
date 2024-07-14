@@ -1,0 +1,8 @@
+# Crafty
+.crafty/
+server/
+out/
+settings.dev.yml
+
+# Env
+.env*.local
