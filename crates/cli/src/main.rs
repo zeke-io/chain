@@ -1,3 +1,4 @@
+mod cli;
 mod runtime;
 
 use anyhow::Context;

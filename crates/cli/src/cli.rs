@@ -3,7 +3,7 @@ use clap::Subcommand;
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "chain", bin_name = "chain", author, version, about)]
+#[command(name = "crafty", bin_name = "crafty", author, version, about)]
 pub struct Cli {
     /// Profile name
     #[arg(long)]
